@@ -1,4 +1,4 @@
-"""DPO Trainer for Qwen2.5-VL using TRL."""
+"""DPO Trainer for Qwen3-VL using TRL."""
 
 from typing import Optional
 from dataclasses import dataclass, field
@@ -15,7 +15,7 @@ class DPOTrainingConfig:
     """Configuration for DPO training."""
 
     # Model
-    model_name: str = "Qwen/Qwen2.5-VL-3B-Instruct"
+    model_name: str = "Qwen/Qwen3-VL-4B-Instruct"
     sft_checkpoint: Optional[str] = None  # Path to SFT checkpoint
     use_lora: bool = True
     use_4bit: bool = True
@@ -59,7 +59,7 @@ def create_dpo_trainer(
     config: DPOTrainingConfig,
     dataset: Optional[Dataset] = None,
 ) -> DPOTrainer:
-    """Create DPO trainer with Qwen2.5-VL.
+    """Create DPO trainer with Qwen3-VL.
 
     Args:
         config: Training configuration

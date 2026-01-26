@@ -123,7 +123,7 @@ def validate_sft_training(
         from ..data.collators import VLMDataCollator
 
         processor = AutoProcessor.from_pretrained(
-            "Qwen/Qwen2.5-VL-3B-Instruct",
+            "Qwen/Qwen3-VL-4B-Instruct",
             trust_remote_code=True,
         )
         collator = VLMDataCollator(
@@ -369,7 +369,7 @@ def validate_dpo_training(
         from ..data.collators import DPODataCollator
 
         processor = AutoProcessor.from_pretrained(
-            "Qwen/Qwen2.5-VL-3B-Instruct",
+            "Qwen/Qwen3-VL-4B-Instruct",
             trust_remote_code=True,
         )
         collator = DPODataCollator(processor=processor, max_length=max_length)
@@ -551,7 +551,7 @@ def validate_grpo_training(
         from ..data.collators import GRPODataCollator
 
         processor = AutoProcessor.from_pretrained(
-            "Qwen/Qwen2.5-VL-3B-Instruct",
+            "Qwen/Qwen3-VL-4B-Instruct",
             trust_remote_code=True,
         )
         collator = GRPODataCollator(processor=processor)

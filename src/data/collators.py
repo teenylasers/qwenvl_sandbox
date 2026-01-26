@@ -1,4 +1,4 @@
-"""Data collators for VLM training with Qwen2.5-VL."""
+"""Data collators for VLM training with Qwen3-VL."""
 
 from typing import Any
 from dataclasses import dataclass
@@ -8,7 +8,7 @@ from PIL import Image
 
 @dataclass
 class VLMDataCollator:
-    """Data collator for Qwen2.5-VL training.
+    """Data collator for Qwen3-VL training.
 
     Handles image preprocessing and text tokenization for VLM batches.
     """
@@ -37,7 +37,7 @@ class VLMDataCollator:
                     image = Image.open(image).convert("RGB")
                 images.append(image)
 
-            # Format as chat for Qwen2.5-VL
+            # Format as chat for Qwen3-VL
             messages = feature.get("messages", [])
             if not messages:
                 question = feature.get("question", "")
@@ -70,7 +70,7 @@ class VLMDataCollator:
         return batch
 
     def _format_messages(self, messages: list[dict]) -> str:
-        """Format messages for Qwen2.5-VL chat template."""
+        """Format messages for Qwen3-VL chat template."""
         formatted = ""
         for msg in messages:
             role = msg["role"]

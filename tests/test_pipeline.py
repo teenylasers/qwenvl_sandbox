@@ -127,7 +127,7 @@ class TestConfigs:
         from src.training.sft_trainer import SFTTrainingConfig
 
         config = SFTTrainingConfig()
-        assert config.model_name == "Qwen/Qwen2.5-VL-3B-Instruct"
+        assert config.model_name == "Qwen/Qwen3-VL-4B-Instruct"
         assert config.use_lora is True
         assert config.learning_rate == 2e-5
 

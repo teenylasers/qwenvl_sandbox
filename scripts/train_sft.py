@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SFT training script for Qwen2.5-VL spatial reasoning."""
+"""SFT training script for Qwen3-VL spatial reasoning."""
 
 import argparse
 import sys
@@ -36,7 +36,7 @@ def create_config_from_yaml(yaml_config: dict, args) -> SFTTrainingConfig:
     lora_cfg = model_cfg.get("lora", {})
 
     return SFTTrainingConfig(
-        model_name=model_cfg.get("name", "Qwen/Qwen2.5-VL-3B-Instruct"),
+        model_name=model_cfg.get("name", "Qwen/Qwen3-VL-4B-Instruct"),
         use_lora=model_cfg.get("use_lora", True),
         use_4bit=model_cfg.get("use_4bit", True),
         lora_r=lora_cfg.get("r", 64),
@@ -64,7 +64,7 @@ def create_config_from_yaml(yaml_config: dict, args) -> SFTTrainingConfig:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Train Qwen2.5-VL with SFT")
+    parser = argparse.ArgumentParser(description="Train Qwen3-VL with SFT")
     parser.add_argument(
         "--config",
         type=str,
@@ -90,8 +90,8 @@ def main():
     parser.add_argument(
         "--mlx_model",
         type=str,
-        default="3b-4bit",
-        help="MLX model to use (3b-4bit, 7b-8bit, etc.)",
+        default="4b-4bit",
+        help="MLX model to use (2b-4bit, 4b-4bit, 8b-4bit, etc.)",
     )
     parser.add_argument(
         "--max_samples",

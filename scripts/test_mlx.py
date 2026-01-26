@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Test script for MLX-based local inference on Apple Silicon.
 
-This script tests the MLX inference pipeline for Qwen2.5-VL, which provides
+This script tests the MLX inference pipeline for Qwen3-VL, which provides
 fast local inference (~200-400 tok/s) compared to PyTorch MPS (~7-9 tok/s).
 
 Usage:
-    # Quick test with default model (3b-4bit)
+    # Quick test with default model (4b-4bit)
     python scripts/test_mlx.py
 
     # Test with specific model
-    python scripts/test_mlx.py --model 7b-8bit
+    python scripts/test_mlx.py --model 8b-4bit
 
     # Test with local image
     python scripts/test_mlx.py --image /path/to/image.jpg
@@ -112,14 +112,14 @@ def test_text_only(model: MLXInference):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Test MLX inference for Qwen2.5-VL on Apple Silicon"
+        description="Test MLX inference for Qwen3-VL on Apple Silicon"
     )
     parser.add_argument(
         "--model",
         type=str,
-        default="3b-4bit",
+        default="4b-4bit",
         choices=list(MLX_MODELS.keys()),
-        help="Model to use (default: 3b-4bit)",
+        help="Model to use (default: 4b-4bit)",
     )
     parser.add_argument(
         "--image",

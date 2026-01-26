@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DPO training script for Qwen2.5-VL spatial reasoning."""
+"""DPO training script for Qwen3-VL spatial reasoning."""
 
 import argparse
 import sys
@@ -35,7 +35,7 @@ def create_config_from_yaml(yaml_config: dict, args) -> DPOTrainingConfig:
     lora_cfg = model_cfg.get("lora", {})
 
     return DPOTrainingConfig(
-        model_name=model_cfg.get("name", "Qwen/Qwen2.5-VL-3B-Instruct"),
+        model_name=model_cfg.get("name", "Qwen/Qwen3-VL-4B-Instruct"),
         sft_checkpoint=args.sft_checkpoint or model_cfg.get("sft_checkpoint"),
         use_lora=model_cfg.get("use_lora", True),
         use_4bit=model_cfg.get("use_4bit", True),
@@ -67,7 +67,7 @@ def create_config_from_yaml(yaml_config: dict, args) -> DPOTrainingConfig:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Train Qwen2.5-VL with DPO")
+    parser = argparse.ArgumentParser(description="Train Qwen3-VL with DPO")
     parser.add_argument(
         "--config",
         type=str,
@@ -99,8 +99,8 @@ def main():
     parser.add_argument(
         "--mlx_model",
         type=str,
-        default="3b-4bit",
-        help="MLX model to use (3b-4bit, 7b-8bit, etc.)",
+        default="4b-4bit",
+        help="MLX model to use (2b-4bit, 4b-4bit, 8b-4bit, etc.)",
     )
     parser.add_argument(
         "--max_samples",

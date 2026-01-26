@@ -12,12 +12,12 @@ from src.eval.spatial_eval import evaluate_model, EvalConfig, SpatialEvaluator
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Evaluate Qwen2.5-VL on spatial reasoning benchmarks"
+        description="Evaluate Qwen3-VL on spatial reasoning benchmarks"
     )
     parser.add_argument(
         "--model_path",
         type=str,
-        default="Qwen/Qwen2.5-VL-3B-Instruct",
+        default="Qwen/Qwen3-VL-4B-Instruct",
         help="Path to model or HuggingFace model ID",
     )
     parser.add_argument(

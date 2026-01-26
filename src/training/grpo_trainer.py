@@ -1,4 +1,4 @@
-"""GRPO Trainer for Qwen2.5-VL using TRL."""
+"""GRPO Trainer for Qwen3-VL using TRL."""
 
 from typing import Optional, Callable, Any
 from dataclasses import dataclass, field
@@ -16,7 +16,7 @@ class GRPOTrainingConfig:
     """Configuration for GRPO training."""
 
     # Model
-    model_name: str = "Qwen/Qwen2.5-VL-3B-Instruct"
+    model_name: str = "Qwen/Qwen3-VL-4B-Instruct"
     sft_checkpoint: Optional[str] = None
     use_lora: bool = True
     use_4bit: bool = True
@@ -100,7 +100,7 @@ def create_grpo_trainer(
     config: GRPOTrainingConfig,
     dataset: Optional[Dataset] = None,
 ) -> GRPOTrainer:
-    """Create GRPO trainer with Qwen2.5-VL.
+    """Create GRPO trainer with Qwen3-VL.
 
     Args:
         config: Training configuration

@@ -1,4 +1,4 @@
-"""MLX-based inference for Qwen2.5-VL on Apple Silicon.
+"""MLX-based inference for Qwen3-VL on Apple Silicon.
 
 This module provides fast local inference using MLX, which is optimized
 for Apple Silicon and achieves ~200-400 tok/s compared to ~7-9 tok/s with MPS.
@@ -37,36 +37,36 @@ def is_mlx_available() -> bool:
 class MLXModelConfig:
     """Configuration for MLX model loading."""
 
-    model_path: str = "mlx-community/Qwen2.5-VL-3B-Instruct-4bit"
+    model_path: str = "mlx-community/Qwen3-VL-4B-Instruct-4bit"
     max_tokens: int = 256
-    temperature: float = 0.1
-    top_p: float = 0.9
+    temperature: float = 0.7  # Qwen3-VL recommended: 0.7
+    top_p: float = 0.8  # Qwen3-VL recommended: 0.8
     verbose: bool = False
 
 
-# Available MLX models for Qwen2.5-VL
+# Available MLX models for Qwen3-VL
 MLX_MODELS = {
-    "3b-4bit": "mlx-community/Qwen2.5-VL-3B-Instruct-4bit",
-    "3b-8bit": "mlx-community/Qwen2.5-VL-3B-Instruct-8bit",
-    "7b-4bit": "mlx-community/Qwen2.5-VL-7B-Instruct-4bit",
-    "7b-8bit": "mlx-community/Qwen2.5-VL-7B-Instruct-8bit",
-    "32b-4bit": "mlx-community/Qwen2.5-VL-32B-Instruct-4bit",
+    "2b-4bit": "mlx-community/Qwen3-VL-2B-Instruct-4bit",
+    "4b-4bit": "mlx-community/Qwen3-VL-4B-Instruct-4bit",
+    "8b-4bit": "mlx-community/Qwen3-VL-8B-Instruct-4bit",
+    "8b-8bit": "mlx-community/Qwen3-VL-8B-Instruct-8bit",
+    "30b-3bit": "mlx-community/Qwen3-VL-30B-A3B-Instruct-3bit",
 }
 
 
 class MLXInference:
-    """MLX-based inference for Qwen2.5-VL.
+    """MLX-based inference for Qwen3-VL.
 
     Example:
         >>> from src.models.mlx_inference import MLXInference
-        >>> mlx_model = MLXInference("3b-4bit")
+        >>> mlx_model = MLXInference("4b-4bit")
         >>> response = mlx_model.generate("Describe this image", image_path="test.jpg")
         >>> print(response)
     """
 
     def __init__(
         self,
-        model_name: str = "3b-4bit",
+        model_name: str = "4b-4bit",
         config: Optional[MLXModelConfig] = None,
     ):
         """Initialize MLX inference.
@@ -211,7 +211,7 @@ class MLXInference:
         return results
 
 
-def quick_test(model_name: str = "3b-4bit", image_url: Optional[str] = None):
+def quick_test(model_name: str = "4b-4bit", image_url: Optional[str] = None):
     """Quick test of MLX inference.
 
     Args:

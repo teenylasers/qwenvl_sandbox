@@ -1,4 +1,4 @@
-"""SFT Trainer for Qwen2.5-VL using TRL."""
+"""SFT Trainer for Qwen3-VL using TRL."""
 
 from typing import Optional, Any
 from dataclasses import dataclass, field
@@ -16,7 +16,7 @@ class SFTTrainingConfig:
     """Configuration for SFT training."""
 
     # Model
-    model_name: str = "Qwen/Qwen2.5-VL-3B-Instruct"
+    model_name: str = "Qwen/Qwen3-VL-4B-Instruct"
     use_lora: bool = True
     use_4bit: bool = True
     lora_r: int = 64
@@ -56,7 +56,7 @@ def create_sft_trainer(
     config: SFTTrainingConfig,
     dataset: Optional[Dataset] = None,
 ) -> SFTTrainer:
-    """Create SFT trainer with Qwen2.5-VL.
+    """Create SFT trainer with Qwen3-VL.
 
     Args:
         config: Training configuration
@@ -117,7 +117,7 @@ def create_sft_trainer(
     )
 
     def formatting_func(examples):
-        """Format examples for Qwen2.5-VL chat."""
+        """Format examples for Qwen3-VL chat."""
         formatted = []
         for i in range(len(examples.get("question", []))):
             question = examples["question"][i]

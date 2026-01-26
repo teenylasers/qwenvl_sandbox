@@ -1,6 +1,6 @@
 # VLM Spatial Reasoning Training Pipeline
 
-Post-training pipeline for Qwen2.5-VL focused on spatial reasoning capabilities, with SFT, DPO, and GRPO training stages.
+Post-training pipeline for Qwen3-VL focused on spatial reasoning capabilities, with SFT, DPO, and GRPO training stages.
 
 ## Features
 
@@ -81,7 +81,7 @@ python scripts/train_grpo.py --reward_type spatial --debug --mlx
 python scripts/evaluate.py --model_path ./outputs/dpo --benchmarks VSR CV-Bench
 
 # Evaluate base model
-python scripts/evaluate.py --model_path Qwen/Qwen2.5-VL-3B-Instruct --max_samples 100
+python scripts/evaluate.py --model_path Qwen/Qwen3-VL-4B-Instruct --max_samples 100
 ```
 
 ## Project Structure
@@ -140,7 +140,7 @@ qwenvl_sandbox/
 
 ```yaml
 model:
-  name: "Qwen/Qwen2.5-VL-3B-Instruct"
+  name: "Qwen/Qwen3-VL-4B-Instruct"
   use_lora: true
   use_4bit: true  # QLoRA (CUDA only)
   lora:
@@ -174,7 +174,7 @@ pip install -e ".[mlx]"
 python scripts/test_mlx.py
 
 # Test with specific model
-python scripts/test_mlx.py --model 7b-8bit
+python scripts/test_mlx.py --model 8b-4bit
 
 # Test spatial reasoning
 python scripts/test_mlx.py --spatial --image /path/to/image.jpg
@@ -186,17 +186,17 @@ python scripts/test_mlx.py --all
 **Available MLX Models:**
 | Model | HuggingFace Path | RAM Required |
 |-------|------------------|--------------|
-| 3b-4bit | mlx-community/Qwen2.5-VL-3B-Instruct-4bit | ~4GB |
-| 3b-8bit | mlx-community/Qwen2.5-VL-3B-Instruct-8bit | ~6GB |
-| 7b-4bit | mlx-community/Qwen2.5-VL-7B-Instruct-4bit | ~8GB |
-| 7b-8bit | mlx-community/Qwen2.5-VL-7B-Instruct-8bit | ~14GB |
-| 32b-4bit | mlx-community/Qwen2.5-VL-32B-Instruct-4bit | ~20GB |
+| 2b-4bit | mlx-community/Qwen3-VL-2B-Instruct-4bit | ~2GB |
+| 4b-4bit | mlx-community/Qwen3-VL-4B-Instruct-4bit | ~4GB |
+| 8b-4bit | mlx-community/Qwen3-VL-8B-Instruct-4bit | ~8GB |
+| 8b-8bit | mlx-community/Qwen3-VL-8B-Instruct-8bit | ~14GB |
+| 30b-3bit | mlx-community/Qwen3-VL-30B-A3B-Instruct-3bit | ~12GB |
 
 **Python API:**
 ```python
 from src.models import MLXInference
 
-model = MLXInference("3b-4bit")
+model = MLXInference("4b-4bit")
 response = model.generate(
     "Describe the spatial relationships in this image.",
     image="path/to/image.jpg"
@@ -219,7 +219,7 @@ python scripts/train_dpo.py --debug --mlx --max_samples 5
 python scripts/train_grpo.py --debug --mlx --max_samples 5
 
 # Use a different MLX model
-python scripts/train_sft.py --debug --mlx --mlx_model 7b-8bit --max_samples 3
+python scripts/train_sft.py --debug --mlx --mlx_model 8b-4bit --max_samples 3
 ```
 
 **What MLX debug mode validates:**
@@ -231,7 +231,7 @@ python scripts/train_sft.py --debug --mlx --mlx_model 7b-8bit --max_samples 3
 
 ### Option 2: PyTorch MPS (Limited)
 
-MPS has compatibility issues with Qwen2.5-VL and is not recommended:
+MPS has compatibility issues with Qwen3-VL and is not recommended:
 - Very slow (~7-9 tok/s)
 - Backward pass issues prevent training
 - Use only if MLX is not available
@@ -273,7 +273,7 @@ Custom reward functions for spatial reasoning:
 ## Training Pipeline
 
 ```
-Base Model (Qwen2.5-VL-3B)
+Base Model (Qwen3-VL-4B)
          │
          ▼
     ┌─────────┐

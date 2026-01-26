@@ -1,9 +1,8 @@
-"""Qwen2.5-VL model loading utilities."""
+"""Qwen3-VL model loading utilities."""
 
 from typing import Optional
 import torch
 from transformers import (
-    Qwen2VLForConditionalGeneration,
     AutoProcessor,
     BitsAndBytesConfig,
 )
@@ -49,7 +48,7 @@ def get_peft_config(
     lora_dropout: float = 0.05,
     target_modules: Optional[list[str]] = None,
 ) -> LoraConfig:
-    """Get LoRA configuration for Qwen2.5-VL.
+    """Get LoRA configuration for Qwen3-VL.
 
     Args:
         r: LoRA rank
@@ -61,7 +60,7 @@ def get_peft_config(
         LoraConfig for PEFT
     """
     if target_modules is None:
-        # Default target modules for Qwen2-VL
+        # Default target modules for Qwen3-VL
         target_modules = [
             "q_proj",
             "k_proj",
@@ -83,14 +82,14 @@ def get_peft_config(
 
 
 def load_qwen_vl(
-    model_name: str = "Qwen/Qwen2.5-VL-3B-Instruct",
+    model_name: str = "Qwen/Qwen3-VL-4B-Instruct",
     use_lora: bool = True,
     use_4bit: bool = True,
     lora_config: Optional[LoraConfig] = None,
     device_map: Optional[str] = "auto",
     attn_implementation: Optional[str] = None,
 ) -> tuple[AutoModelForVision2Seq, AutoProcessor]:
-    """Load Qwen2.5-VL model and processor.
+    """Load Qwen3-VL model and processor.
 
     Args:
         model_name: HuggingFace model name or path
@@ -133,7 +132,7 @@ def load_qwen_vl(
     if attn_implementation and device == "cuda":
         model_kwargs["attn_implementation"] = attn_implementation
 
-    # Load model - use Auto class to handle both Qwen2-VL and Qwen2.5-VL
+    # Load model - use Auto class to handle Qwen2-VL, Qwen2.5-VL, and Qwen3-VL
     model = AutoModelForVision2Seq.from_pretrained(
         model_name,
         **model_kwargs,
@@ -157,11 +156,11 @@ def load_qwen_vl(
 
 
 def load_qwen_vl_for_inference(
-    model_name: str = "Qwen/Qwen2.5-VL-3B-Instruct",
+    model_name: str = "Qwen/Qwen3-VL-4B-Instruct",
     adapter_path: Optional[str] = None,
     use_4bit: bool = False,
 ) -> tuple[AutoModelForVision2Seq, AutoProcessor]:
-    """Load Qwen2.5-VL for inference, optionally with trained adapter.
+    """Load Qwen3-VL for inference, optionally with trained adapter.
 
     Args:
         model_name: Base model name
