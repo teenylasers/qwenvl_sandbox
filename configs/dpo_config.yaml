@@ -1,0 +1,57 @@
+# DPO Training Configuration for Qwen2.5-VL
+# Usage: python scripts/train_dpo.py --config configs/dpo_config.yaml
+
+# Model settings
+model:
+  name: "Qwen/Qwen2.5-VL-3B-Instruct"
+  sft_checkpoint: null  # Path to SFT checkpoint, e.g., "./outputs/sft"
+  use_lora: true
+  use_4bit: true
+  lora:
+    r: 64
+    alpha: 16
+    dropout: 0.05
+
+# DPO settings
+dpo:
+  beta: 0.1  # KL penalty coefficient
+  loss_type: "sigmoid"  # sigmoid, hinge, ipo, kto_pair
+  label_smoothing: 0.0
+
+# Dataset settings
+data:
+  max_samples: null
+  shuffle: true
+  seed: 42
+
+# Training settings
+training:
+  output_dir: "./outputs/dpo"
+  num_epochs: 1
+  batch_size: 1
+  gradient_accumulation_steps: 8
+  learning_rate: 5.0e-7
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  max_length: 2048
+  max_prompt_length: 1024
+  gradient_checkpointing: true
+
+# Hardware settings
+hardware:
+  bf16: true
+  dataloader_num_workers: 4
+
+# Logging settings
+logging:
+  steps: 10
+  save_steps: 500
+  save_total_limit: 3
+  report_to: "wandb"
+  run_name: "qwen-vl-dpo-spatial"
+
+# Debug settings
+debug:
+  enabled: false
+  max_samples: 50
+  max_steps: 30

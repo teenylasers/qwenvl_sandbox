@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vlm-spatial-training"
+version = "0.1.0"
+description = "Post-training pipeline for Qwen VL with spatial reasoning focus"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = [
+    "torch>=2.1.0",
+    "transformers>=4.45.0",
+    "trl>=0.12.0",
+    "datasets>=2.14.0",
+    "accelerate>=0.25.0",
+    "peft>=0.7.0",
+    "qwen-vl-utils",
+    "pillow",
+    "pyyaml",
+    "wandb",
+    "bitsandbytes",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "ruff",
+]
+mlx = [
+    "mlx>=0.22.0",
+    "mlx-vlm>=0.1.0",
+]
+cloud = [
+    "deepspeed",
+    "vllm>=0.6.0",
+    "flash-attn",
+]
+
+[project.scripts]
+train-sft = "scripts.train_sft:main"
+train-dpo = "scripts.train_dpo:main"
+train-grpo = "scripts.train_grpo:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]

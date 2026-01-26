@@ -1,0 +1,61 @@
+# SFT Training Configuration for Qwen2.5-VL
+# Usage: python scripts/train_sft.py --config configs/sft_config.yaml
+
+# Model settings
+model:
+  name: "Qwen/Qwen2.5-VL-3B-Instruct"
+  use_lora: true
+  use_4bit: true  # Set to false for MPS/CPU
+  lora:
+    r: 64
+    alpha: 16
+    dropout: 0.05
+    target_modules:
+      - q_proj
+      - k_proj
+      - v_proj
+      - o_proj
+      - gate_proj
+      - up_proj
+      - down_proj
+
+# Dataset settings
+data:
+  datasets:
+    - rlhfv    # RLHF-V chosen responses
+    - pixmo    # PixMo-Cap dense captions
+    - spatial  # SpatialVLM
+  max_samples_per_dataset: null  # Set to small number for testing
+  shuffle: true
+  seed: 42
+
+# Training settings
+training:
+  output_dir: "./outputs/sft"
+  num_epochs: 3
+  batch_size: 1
+  gradient_accumulation_steps: 8
+  learning_rate: 2.0e-5
+  warmup_ratio: 0.1
+  weight_decay: 0.01
+  max_seq_length: 2048
+  gradient_checkpointing: true
+
+# Hardware settings
+hardware:
+  bf16: true  # Set to false for MPS/CPU
+  dataloader_num_workers: 4
+
+# Logging settings
+logging:
+  steps: 10
+  save_steps: 500
+  save_total_limit: 3
+  report_to: "wandb"  # Set to "none" to disable
+  run_name: "qwen-vl-sft-spatial"
+
+# Debug settings (for local testing)
+debug:
+  enabled: false
+  max_samples: 100
+  max_steps: 50
