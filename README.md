@@ -8,7 +8,7 @@ Post-training pipeline for Qwen2.5-VL focused on spatial reasoning capabilities,
 - **DPO (Direct Preference Optimization)** for alignment
 - **GRPO (Group Relative Policy Optimization)** with custom spatial reasoning rewards
 - Support for **QLoRA** (4-bit quantization + LoRA)
-- **Apple Silicon (MPS)** support for local development
+- **Apple Silicon (MLX or MPS)** support for local development
 - **Cloud GPU** ready (CUDA, multi-GPU with DeepSpeed)
 
 ## Installation
@@ -41,10 +41,10 @@ python scripts/download_datasets.py --datasets all
 # Full training (requires GPU)
 python scripts/train_sft.py --config configs/sft_config.yaml
 
-# Debug with MLX (recommended for local testing on Apple Silicon)
+# Debug with MLX (Faster local testing on Apple Silicon in inference mode only)
 python scripts/train_sft.py --debug --mlx --max_samples 5
 
-# Debug with PyTorch (slow, not recommended)
+# Debug with PyTorch (Slower local testing that runs training for a small number of steps)
 python scripts/train_sft.py --debug --max_samples 100 --no_wandb
 ```
 
