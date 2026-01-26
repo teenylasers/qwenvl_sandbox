@@ -130,6 +130,12 @@ def main():
         default=None,
         help="Override run name",
     )
+    parser.add_argument(
+        "--resume_from_checkpoint",
+        type=str,
+        default=None,
+        help="Path to checkpoint to resume training from",
+    )
     args = parser.parse_args()
 
     # Handle MLX debug mode
@@ -177,7 +183,7 @@ def main():
     print(f"Max samples: {config.max_samples or 'all'}")
     print("=" * 60)
 
-    output_path = train_grpo(config)
+    output_path = train_grpo(config, resume_from_checkpoint=args.resume_from_checkpoint)
     print(f"\nGRPO training complete! Model saved to: {output_path}")
 
 

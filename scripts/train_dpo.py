@@ -119,6 +119,12 @@ def main():
         default=None,
         help="Override run name for logging",
     )
+    parser.add_argument(
+        "--resume_from_checkpoint",
+        type=str,
+        default=None,
+        help="Path to checkpoint to resume training from",
+    )
     args = parser.parse_args()
 
     # Handle MLX debug mode
@@ -161,7 +167,7 @@ def main():
         print("WARNING: Debug mode without --mlx may be slow/broken on MPS")
     print("=" * 60)
 
-    output_path = train_dpo(config)
+    output_path = train_dpo(config, resume_from_checkpoint=args.resume_from_checkpoint)
     print(f"\nDPO training complete! Model saved to: {output_path}")
 
 

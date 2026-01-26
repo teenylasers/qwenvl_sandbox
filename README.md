@@ -240,9 +240,32 @@ MPS has compatibility issues with Qwen3-VL and is not recommended:
 
 For full training, use cloud GPUs. The pipeline supports:
 
+- **Google Colab** (free tier with T4, Pro with V100/A100)
 - **RunPod** / **Lambda Labs** / **Modal**
 - Multi-GPU with DeepSpeed or FSDP
 - vLLM integration for GRPO sampling
+
+### Google Colab (Recommended for Getting Started)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/YOUR_USERNAME/qwenvl_sandbox/blob/main/notebooks/qwen3_vl_training.ipynb)
+
+The included Colab notebook handles:
+- Automatic GPU detection and config optimization
+- Google Drive persistence for checkpoints and datasets
+- Session timeout recovery with checkpoint resume
+- WandB integration for experiment tracking
+
+See [docs/COLAB_TRAINING.md](docs/COLAB_TRAINING.md) for detailed instructions.
+
+Quick start:
+```bash
+# Use pre-configured Colab settings
+python scripts/train_sft.py --config configs/colab_sft_config.yaml
+
+# Resume from checkpoint after session timeout
+python scripts/train_sft.py --config configs/colab_sft_config.yaml \
+    --resume_from_checkpoint /path/to/checkpoint-200
+```
 
 Example cloud config:
 ```yaml

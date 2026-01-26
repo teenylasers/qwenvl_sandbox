@@ -110,6 +110,12 @@ def main():
         default=None,
         help="Override run name for logging",
     )
+    parser.add_argument(
+        "--resume_from_checkpoint",
+        type=str,
+        default=None,
+        help="Path to checkpoint to resume training from",
+    )
     args = parser.parse_args()
 
     # Handle MLX debug mode
@@ -158,7 +164,7 @@ def main():
     print("=" * 60)
 
     # Run training
-    output_path = train_sft(config)
+    output_path = train_sft(config, resume_from_checkpoint=args.resume_from_checkpoint)
     print(f"\nTraining complete! Model saved to: {output_path}")
 
 

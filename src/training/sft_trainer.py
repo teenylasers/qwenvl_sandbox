@@ -142,11 +142,15 @@ def create_sft_trainer(
     return trainer
 
 
-def train_sft(config: SFTTrainingConfig) -> str:
+def train_sft(
+    config: SFTTrainingConfig,
+    resume_from_checkpoint: Optional[str] = None,
+) -> str:
     """Run SFT training.
 
     Args:
         config: Training configuration
+        resume_from_checkpoint: Path to checkpoint to resume from
 
     Returns:
         Path to saved model
@@ -155,9 +159,11 @@ def train_sft(config: SFTTrainingConfig) -> str:
 
     print(f"Starting SFT training on {get_device()}")
     print(f"Output directory: {config.output_dir}")
+    if resume_from_checkpoint:
+        print(f"Resuming from: {resume_from_checkpoint}")
 
     # Train
-    trainer.train()
+    trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 
     # Save final model
     trainer.save_model()

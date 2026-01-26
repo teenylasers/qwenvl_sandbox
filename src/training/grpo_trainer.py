@@ -203,11 +203,15 @@ def create_grpo_trainer(
     return trainer
 
 
-def train_grpo(config: GRPOTrainingConfig) -> str:
+def train_grpo(
+    config: GRPOTrainingConfig,
+    resume_from_checkpoint: Optional[str] = None,
+) -> str:
     """Run GRPO training.
 
     Args:
         config: Training configuration
+        resume_from_checkpoint: Path to checkpoint to resume from
 
     Returns:
         Path to saved model
@@ -218,9 +222,11 @@ def train_grpo(config: GRPOTrainingConfig) -> str:
     print(f"Output directory: {config.output_dir}")
     print(f"Reward type: {config.reward_type}")
     print(f"Num generations per prompt: {config.num_generations}")
+    if resume_from_checkpoint:
+        print(f"Resuming from: {resume_from_checkpoint}")
 
     # Train
-    trainer.train()
+    trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 
     # Save final model
     trainer.save_model()

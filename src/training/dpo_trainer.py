@@ -150,11 +150,15 @@ def create_dpo_trainer(
     return trainer
 
 
-def train_dpo(config: DPOTrainingConfig) -> str:
+def train_dpo(
+    config: DPOTrainingConfig,
+    resume_from_checkpoint: Optional[str] = None,
+) -> str:
     """Run DPO training.
 
     Args:
         config: Training configuration
+        resume_from_checkpoint: Path to checkpoint to resume from
 
     Returns:
         Path to saved model
@@ -164,9 +168,11 @@ def train_dpo(config: DPOTrainingConfig) -> str:
     print(f"Starting DPO training on {get_device()}")
     print(f"Output directory: {config.output_dir}")
     print(f"Beta (KL penalty): {config.beta}")
+    if resume_from_checkpoint:
+        print(f"Resuming from: {resume_from_checkpoint}")
 
     # Train
-    trainer.train()
+    trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 
     # Save final model
     trainer.save_model()
