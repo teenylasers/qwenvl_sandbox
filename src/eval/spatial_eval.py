@@ -1,13 +1,14 @@
 """Evaluation module for spatial reasoning benchmarks."""
 
-from typing import Optional, Any
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 from pathlib import Path
-from tqdm import tqdm
-from datasets import Dataset
+from typing import Any, Optional
 
-from ..data.datasets import load_vsr_benchmark, load_cvbench
+from datasets import Dataset
+from tqdm import tqdm
+
+from ..data.datasets import load_cvbench, load_vsr_benchmark
 
 
 @dataclass
@@ -89,7 +90,7 @@ class _BaseSpatialEvaluator:
             # Ask model to verify the caption
             question = (
                 f"Is this statement about the image TRUE or FALSE?\n"
-                f"Statement: \"{caption}\"\n"
+                f'Statement: "{caption}"\n'
                 f"Answer with only TRUE or FALSE."
             )
 
@@ -112,13 +113,15 @@ class _BaseSpatialEvaluator:
             if is_correct:
                 correct += 1
 
-            predictions.append({
-                "caption": caption,
-                "label": label,
-                "predicted": predicted,
-                "response": response,
-                "correct": is_correct,
-            })
+            predictions.append(
+                {
+                    "caption": caption,
+                    "label": label,
+                    "predicted": predicted,
+                    "response": response,
+                    "correct": is_correct,
+                }
+            )
 
         accuracy = correct / len(dataset) if dataset else 0
 
@@ -170,12 +173,14 @@ class _BaseSpatialEvaluator:
             if is_correct:
                 correct += 1
 
-            predictions.append({
-                "question": question,
-                "answer": answer,
-                "response": response,
-                "correct": is_correct,
-            })
+            predictions.append(
+                {
+                    "question": question,
+                    "answer": answer,
+                    "response": response,
+                    "correct": is_correct,
+                }
+            )
 
         accuracy = correct / len(dataset) if dataset else 0
 
@@ -221,12 +226,14 @@ class _BaseSpatialEvaluator:
             if is_correct:
                 correct += 1
 
-            predictions.append({
-                "question": question,
-                "answer": answer,
-                "response": response,
-                "correct": is_correct,
-            })
+            predictions.append(
+                {
+                    "question": question,
+                    "answer": answer,
+                    "response": response,
+                    "correct": is_correct,
+                }
+            )
 
         accuracy = correct / len(dataset) if dataset else 0
 
@@ -311,8 +318,7 @@ class SpatialEvaluator(_BaseSpatialEvaluator):
         Args:
             config: Evaluation configuration
         """
-        import torch
-        from ..models.qwen_vl import load_qwen_vl_for_inference, get_device
+        from ..models.qwen_vl import get_device, load_qwen_vl_for_inference
 
         self.config = config
         self.device = get_device()
@@ -362,7 +368,9 @@ class SpatialEvaluator(_BaseSpatialEvaluator):
         )
 
         # Move to device
-        inputs = {k: v.to(self.device) if hasattr(v, "to") else v for k, v in inputs.items()}
+        inputs = {
+            k: v.to(self.device) if hasattr(v, "to") else v for k, v in inputs.items()
+        }
 
         # Generate
         with torch.no_grad():
@@ -375,7 +383,7 @@ class SpatialEvaluator(_BaseSpatialEvaluator):
             )
 
         # Decode
-        generated_ids = outputs[0][inputs["input_ids"].shape[1]:]
+        generated_ids = outputs[0][inputs["input_ids"].shape[1] :]
         response = self.processor.decode(generated_ids, skip_special_tokens=True)
 
         return response.strip()
@@ -415,7 +423,9 @@ def evaluate_model(
     print("Evaluation Summary")
     print("=" * 60)
     for name, result in results.items():
-        print(f"{name}: {result.accuracy:.2%} ({result.correct}/{result.total_samples})")
+        print(
+            f"{name}: {result.accuracy:.2%} ({result.correct}/{result.total_samples})"
+        )
     print("=" * 60)
 
     return results
