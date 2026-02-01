@@ -5,6 +5,25 @@ from datasets import load_dataset, Dataset, concatenate_datasets
 from PIL import Image
 import io
 import json
+import requests
+
+
+def _download_image(url: str, timeout: int = 10) -> Optional[Image.Image]:
+    """Download an image from a URL and return as PIL Image.
+
+    Args:
+        url: Image URL
+        timeout: Request timeout in seconds
+
+    Returns:
+        PIL Image or None if download fails
+    """
+    try:
+        response = requests.get(url, timeout=timeout)
+        response.raise_for_status()
+        return Image.open(io.BytesIO(response.content)).convert("RGB")
+    except Exception:
+        return None
 
 
 # =============================================================================
@@ -133,6 +152,239 @@ def load_spatial_vlm(
     return ds.map(format_for_sft, remove_columns=ds.column_names)
 
 
+def load_llava_instruct(
+    max_samples: Optional[int] = None,
+) -> Dataset:
+    """Load LLaVA-Instruct-150K dataset for SFT.
+
+    Contains 150K visual instruction-following examples with conversations.
+    Images are COCO filenames downloaded at load time.
+
+    Args:
+        max_samples: Maximum number of samples to load
+
+    Returns:
+        Dataset formatted for SFT training
+    """
+    ds = load_dataset("liuhaotian/LLaVA-Instruct-150K", split="train")
+
+    if max_samples:
+        ds = ds.select(range(min(max_samples, len(ds))))
+
+    def format_for_sft(example):
+        # Extract first human/gpt turn from conversations
+        conversations = example.get("conversations", [])
+        question = ""
+        answer = ""
+        for turn in conversations:
+            if turn["from"] == "human" and not question:
+                # Strip <image>\n prefix if present
+                value = turn["value"]
+                value = value.replace("<image>\n", "").replace("<image>", "").strip()
+                question = value
+            elif turn["from"] == "gpt" and not answer:
+                answer = turn["value"]
+
+        # Download COCO image
+        filename = example.get("image", "")
+        url = f"http://images.cocodataset.org/train2017/{filename}"
+        image = _download_image(url)
+
+        if image is None:
+            return {"images": [], "question": "", "answer": "", "messages": []}
+
+        return {
+            "images": [image],
+            "question": question,
+            "answer": answer,
+            "messages": [
+                {"role": "user", "content": question},
+                {"role": "assistant", "content": answer},
+            ],
+        }
+
+    ds = ds.map(format_for_sft, remove_columns=ds.column_names)
+    # Filter out failed downloads
+    ds = ds.filter(lambda x: len(x["question"]) > 0)
+    return ds
+
+
+def load_pixmo_points(
+    max_samples: Optional[int] = None,
+) -> Dataset:
+    """Load PixMo-Points dataset for SFT.
+
+    Contains 2.38M pointing/counting examples. Images are downloaded from URLs.
+    Converted to Q&A format based on collection_method (counting vs pointing).
+
+    Args:
+        max_samples: Maximum number of samples to load
+
+    Returns:
+        Dataset formatted for SFT training
+    """
+    ds = load_dataset("allenai/pixmo-points", split="train")
+
+    if max_samples:
+        ds = ds.select(range(min(max_samples, len(ds))))
+
+    def format_for_sft(example):
+        label = example.get("label", "objects")
+        count = example.get("count", 0)
+        method = example.get("collection_method", "counting")
+
+        # Create Q&A based on collection method
+        if method == "counting":
+            question = f"How many {label} are in this image?"
+            answer = str(count)
+        else:
+            # Pointing - format coordinates
+            points = example.get("points", [])
+            question = f"Point to all {label} in this image."
+            if points:
+                coords = [f"({p['x']:.1f}, {p['y']:.1f})" for p in points]
+                answer = f"There are {count} {label}: " + ", ".join(coords)
+            else:
+                answer = f"There are {count} {label} in the image."
+
+        # Download image from URL
+        url = example.get("image_url", "")
+        image = _download_image(url)
+
+        if image is None:
+            return {"images": [], "question": "", "answer": "", "messages": []}
+
+        return {
+            "images": [image],
+            "question": question,
+            "answer": answer,
+            "messages": [
+                {"role": "user", "content": question},
+                {"role": "assistant", "content": answer},
+            ],
+        }
+
+    ds = ds.map(format_for_sft, remove_columns=ds.column_names)
+    ds = ds.filter(lambda x: len(x["question"]) > 0)
+    return ds
+
+
+def load_sharegpt4v(
+    max_samples: Optional[int] = None,
+) -> Dataset:
+    """Load ShareGPT4V dataset for SFT.
+
+    Contains 102K GPT4-Vision-powered captions for COCO images.
+    Images are downloaded from COCO server at load time.
+
+    Args:
+        max_samples: Maximum number of samples to load
+
+    Returns:
+        Dataset formatted for SFT training
+    """
+    ds = load_dataset("Lin-Chen/ShareGPT4V", "ShareGPT4V", split="train")
+
+    if max_samples:
+        ds = ds.select(range(min(max_samples, len(ds))))
+
+    def format_for_sft(example):
+        # Extract first human/gpt turn
+        conversations = example.get("conversations", [])
+        question = ""
+        answer = ""
+        for turn in conversations:
+            if turn["from"] == "human" and not question:
+                value = turn["value"]
+                value = value.replace("<image>\n", "").replace("<image>", "").strip()
+                question = value
+            elif turn["from"] == "gpt" and not answer:
+                answer = turn["value"]
+
+        # Parse image path to get COCO URL
+        # Paths are like "coco/train2017/000000000009.jpg"
+        image_path = example.get("image", "")
+        if "coco/" in image_path:
+            # Extract the COCO path portion
+            coco_part = image_path.split("coco/", 1)[1]
+            url = f"http://images.cocodataset.org/{coco_part}"
+        else:
+            url = ""
+
+        image = _download_image(url) if url else None
+
+        if image is None:
+            return {"images": [], "question": "", "answer": "", "messages": []}
+
+        return {
+            "images": [image],
+            "question": question,
+            "answer": answer,
+            "messages": [
+                {"role": "user", "content": question},
+                {"role": "assistant", "content": answer},
+            ],
+        }
+
+    ds = ds.map(format_for_sft, remove_columns=ds.column_names)
+    ds = ds.filter(lambda x: len(x["question"]) > 0)
+    return ds
+
+
+def load_pixmo_docs(
+    max_samples: Optional[int] = None,
+) -> Dataset:
+    """Load PixMo-Docs dataset for SFT.
+
+    Contains ~255K QA pairs about charts, tables, diagrams, and documents.
+    Images are embedded. Multiple questions per image are flattened to one row each.
+
+    Args:
+        max_samples: Maximum number of samples to load
+
+    Returns:
+        Dataset formatted for SFT training
+    """
+    # Load all subsets and combine
+    all_rows = {"images": [], "question": [], "answer": [], "messages": []}
+
+    for subset in ["charts", "tables", "diagrams", "other"]:
+        try:
+            ds = load_dataset("allenai/pixmo-docs", subset, split="train")
+        except Exception:
+            print(f"  Warning: PixMo-Docs subset '{subset}' not available, skipping.")
+            continue
+
+        for example in ds:
+            image = example.get("image")
+            if image is None:
+                continue
+            if not isinstance(image, Image.Image):
+                continue
+
+            questions = example.get("questions", [])
+            for qa in questions:
+                q = qa.get("question", "")
+                a = qa.get("answer", "")
+                if q and a:
+                    all_rows["images"].append([image.convert("RGB")])
+                    all_rows["question"].append(q)
+                    all_rows["answer"].append(a)
+                    all_rows["messages"].append([
+                        {"role": "user", "content": q},
+                        {"role": "assistant", "content": a},
+                    ])
+
+                    if max_samples and len(all_rows["question"]) >= max_samples:
+                        break
+            if max_samples and len(all_rows["question"]) >= max_samples:
+                break
+        if max_samples and len(all_rows["question"]) >= max_samples:
+            break
+
+    return Dataset.from_dict(all_rows)
+
+
 def load_sft_dataset(
     datasets_to_load: list[str] = ["rlhfv", "pixmo", "spatial"],
     max_samples_per_dataset: Optional[int] = None,
@@ -154,6 +406,10 @@ def load_sft_dataset(
         "rlhfv": load_rlhfv_sft,
         "pixmo": load_pixmo_cap,
         "spatial": load_spatial_vlm,
+        "llava_instruct": load_llava_instruct,
+        "pixmo_points": load_pixmo_points,
+        "sharegpt4v": load_sharegpt4v,
+        "pixmo_docs": load_pixmo_docs,
     }
 
     loaded_datasets = []

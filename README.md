@@ -126,6 +126,10 @@ qwenvl_sandbox/
 | [RLHF-V](https://huggingface.co/datasets/openbmb/RLHF-V-Dataset) | 5,733 | Preference pairs for DPO |
 | [PixMo-Cap](https://huggingface.co/datasets/allenai/pixmo-cap) | ~1M | Dense captions for SFT |
 | [SpatialVLM](https://spatial-vlm.github.io/) | 2B synthetic | Spatial VQA |
+| [LLaVA-Instruct-150K](https://huggingface.co/datasets/liuhaotian/LLaVA-Instruct-150K) | 150K | Visual instruction following |
+| [PixMo-Points](https://huggingface.co/datasets/allenai/pixmo-points) | 2.38M | Counting and pointing |
+| [ShareGPT4V](https://huggingface.co/datasets/Lin-Chen/ShareGPT4V) | 102K | GPT4V-powered captions |
+| [PixMo-Docs](https://huggingface.co/datasets/allenai/pixmo-docs) | ~255K | Chart/table/diagram QA |
 
 ### Evaluation Benchmarks
 

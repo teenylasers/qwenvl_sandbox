@@ -94,13 +94,78 @@ def download_cvbench():
         return False
 
 
+def download_llava_instruct():
+    """Download LLaVA-Instruct-150K dataset."""
+    print("Downloading LLaVA-Instruct-150K...")
+    try:
+        from datasets import load_dataset
+        ds = load_dataset("liuhaotian/LLaVA-Instruct-150K", split="train")
+        print(f"  LLaVA-Instruct-150K: {len(ds)} samples")
+        print("  Note: COCO images will be downloaded at training time.")
+        return True
+    except Exception as e:
+        print(f"  Failed to download LLaVA-Instruct-150K: {e}")
+        return False
+
+
+def download_pixmo_points():
+    """Download PixMo-Points dataset."""
+    print("Downloading PixMo-Points...")
+    try:
+        from datasets import load_dataset
+        ds = load_dataset("allenai/pixmo-points", split="train")
+        print(f"  PixMo-Points: {len(ds)} samples")
+        print("  Note: Images will be downloaded from URLs at training time.")
+        return True
+    except Exception as e:
+        print(f"  Failed to download PixMo-Points: {e}")
+        return False
+
+
+def download_sharegpt4v():
+    """Download ShareGPT4V dataset."""
+    print("Downloading ShareGPT4V...")
+    try:
+        from datasets import load_dataset
+        ds = load_dataset("Lin-Chen/ShareGPT4V", "ShareGPT4V", split="train")
+        print(f"  ShareGPT4V: {len(ds)} samples")
+        print("  Note: COCO images will be downloaded at training time.")
+        return True
+    except Exception as e:
+        print(f"  Failed to download ShareGPT4V: {e}")
+        return False
+
+
+def download_pixmo_docs():
+    """Download PixMo-Docs dataset."""
+    print("Downloading PixMo-Docs...")
+    try:
+        from datasets import load_dataset
+        total = 0
+        for subset in ["charts", "tables", "diagrams", "other"]:
+            try:
+                ds = load_dataset("allenai/pixmo-docs", subset, split="train")
+                print(f"  PixMo-Docs ({subset}): {len(ds)} samples")
+                total += len(ds)
+            except Exception as e:
+                print(f"  PixMo-Docs ({subset}) not available: {e}")
+        print(f"  PixMo-Docs total: {total} samples")
+        return total > 0
+    except Exception as e:
+        print(f"  Failed to download PixMo-Docs: {e}")
+        return False
+
+
 def main():
     parser = argparse.ArgumentParser(description="Download datasets for VLM training")
     parser.add_argument(
         "--datasets",
         nargs="+",
         default=["all"],
-        choices=["all", "rlhfv", "pixmo", "spatial", "vsr", "cvbench"],
+        choices=[
+            "all", "rlhfv", "pixmo", "spatial", "vsr", "cvbench",
+            "llava_instruct", "pixmo_points", "sharegpt4v", "pixmo_docs",
+        ],
         help="Datasets to download",
     )
     parser.add_argument(
@@ -121,7 +186,10 @@ def main():
 
     datasets_to_download = args.datasets
     if "all" in datasets_to_download:
-        datasets_to_download = ["rlhfv", "pixmo", "spatial", "vsr", "cvbench"]
+        datasets_to_download = [
+            "rlhfv", "pixmo", "spatial", "vsr", "cvbench",
+            "llava_instruct", "pixmo_points", "sharegpt4v", "pixmo_docs",
+        ]
 
     results = {}
 
@@ -139,6 +207,18 @@ def main():
 
     if "cvbench" in datasets_to_download:
         results["CV-Bench"] = download_cvbench()
+
+    if "llava_instruct" in datasets_to_download:
+        results["LLaVA-Instruct-150K"] = download_llava_instruct()
+
+    if "pixmo_points" in datasets_to_download:
+        results["PixMo-Points"] = download_pixmo_points()
+
+    if "sharegpt4v" in datasets_to_download:
+        results["ShareGPT4V"] = download_sharegpt4v()
+
+    if "pixmo_docs" in datasets_to_download:
+        results["PixMo-Docs"] = download_pixmo_docs()
 
     print("\n" + "=" * 60)
     print("Download Summary")
