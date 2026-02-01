@@ -77,11 +77,17 @@ python scripts/train_grpo.py --reward_type spatial --debug --mlx
 ### 5. Evaluate
 
 ```bash
-# Evaluate trained model
+# Evaluate trained model (PyTorch, requires GPU)
 python scripts/evaluate.py --model_path ./outputs/dpo --benchmarks VSR CV-Bench
 
-# Evaluate base model
+# Evaluate base model (PyTorch)
 python scripts/evaluate.py --model_path Qwen/Qwen3-VL-4B-Instruct --max_samples 100
+
+# Evaluate with MLX (fast, Apple Silicon)
+python scripts/evaluate.py --mlx --benchmarks VSR CV-Bench
+
+# Evaluate with a specific MLX model
+python scripts/evaluate.py --mlx --mlx-model 8b-4bit --max_samples 100
 ```
 
 ## Project Structure
@@ -106,7 +112,8 @@ qwenvl_sandbox/
 │   │   ├── reward_functions.py  # Spatial reasoning rewards
 │   │   └── mlx_debug.py     # MLX-based debug validation
 │   └── eval/
-│       └── spatial_eval.py  # Evaluation on benchmarks
+│       ├── spatial_eval.py  # Evaluation on benchmarks (PyTorch)
+│       └── mlx_eval.py      # Evaluation on benchmarks (MLX)
 ├── scripts/
 │   ├── download_datasets.py
 │   ├── train_sft.py
@@ -251,6 +258,24 @@ python scripts/train_sft.py --debug --mlx --mlx_model 8b-4bit --max_samples 3
 - Model generates coherent responses
 - Reward functions compute valid scores (GRPO)
 - Preference pairs have distinct chosen/rejected responses (DPO)
+
+### MLX Benchmark Evaluation
+
+Run the full VSR and CV-Bench evaluation benchmarks locally on Apple Silicon using MLX:
+
+```bash
+# Evaluate with default model (4b-4bit, ~4GB RAM)
+python scripts/evaluate.py --mlx --benchmarks VSR CV-Bench
+
+# Quick check with limited samples
+python scripts/evaluate.py --mlx --max_samples 100
+
+# Use a larger model
+python scripts/evaluate.py --mlx --mlx-model 8b-4bit
+
+# Save results to a specific directory
+python scripts/evaluate.py --mlx --output_dir ./eval_results/mlx_base
+```
 
 ### Option 2: PyTorch MPS (Limited)
 

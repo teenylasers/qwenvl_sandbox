@@ -7,8 +7,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.eval.spatial_eval import evaluate_model, EvalConfig, SpatialEvaluator
-
 
 def main():
     parser = argparse.ArgumentParser(
@@ -49,24 +47,55 @@ def main():
         action="store_true",
         help="Use 4-bit quantization (CUDA only)",
     )
+    parser.add_argument(
+        "--mlx",
+        action="store_true",
+        help="Use MLX backend for fast evaluation on Apple Silicon",
+    )
+    parser.add_argument(
+        "--mlx-model",
+        type=str,
+        default="4b-4bit",
+        help="MLX model shorthand or HuggingFace path (default: 4b-4bit)",
+    )
     args = parser.parse_args()
 
     print("=" * 60)
     print("VLM Spatial Reasoning Evaluation")
     print("=" * 60)
-    print(f"Model: {args.model_path}")
-    print(f"Adapter: {args.adapter_path or 'None'}")
-    print(f"Benchmarks: {args.benchmarks}")
-    print(f"Max samples: {args.max_samples or 'all'}")
-    print("=" * 60)
 
-    results = evaluate_model(
-        model_path=args.model_path,
-        adapter_path=args.adapter_path,
-        benchmarks=args.benchmarks,
-        max_samples=args.max_samples,
-        output_dir=args.output_dir,
-    )
+    if args.mlx:
+        from src.eval.mlx_eval import evaluate_model_mlx
+
+        print(f"Backend: MLX")
+        print(f"Model: {args.mlx_model}")
+        print(f"Benchmarks: {args.benchmarks}")
+        print(f"Max samples: {args.max_samples or 'all'}")
+        print("=" * 60)
+
+        results = evaluate_model_mlx(
+            mlx_model=args.mlx_model,
+            benchmarks=args.benchmarks,
+            max_samples=args.max_samples,
+            output_dir=args.output_dir,
+        )
+    else:
+        from src.eval.spatial_eval import evaluate_model
+
+        print(f"Backend: PyTorch")
+        print(f"Model: {args.model_path}")
+        print(f"Adapter: {args.adapter_path or 'None'}")
+        print(f"Benchmarks: {args.benchmarks}")
+        print(f"Max samples: {args.max_samples or 'all'}")
+        print("=" * 60)
+
+        results = evaluate_model(
+            model_path=args.model_path,
+            adapter_path=args.adapter_path,
+            benchmarks=args.benchmarks,
+            max_samples=args.max_samples,
+            output_dir=args.output_dir,
+        )
 
     print("\nEvaluation complete!")
 

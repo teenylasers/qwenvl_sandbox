@@ -4,11 +4,9 @@ from typing import Optional, Any
 from dataclasses import dataclass
 import json
 from pathlib import Path
-import torch
 from tqdm import tqdm
 from datasets import Dataset
 
-from ..models.qwen_vl import load_qwen_vl_for_inference, get_device
 from ..data.datasets import load_vsr_benchmark, load_cvbench
 
 
@@ -36,26 +34,13 @@ class EvalResult:
     predictions: list[dict]
 
 
-class SpatialEvaluator:
-    """Evaluator for spatial reasoning benchmarks."""
+class _BaseSpatialEvaluator:
+    """Base evaluator with shared benchmark logic.
 
-    def __init__(self, config: EvalConfig):
-        """Initialize evaluator.
+    Subclasses must implement __init__ and generate.
+    """
 
-        Args:
-            config: Evaluation configuration
-        """
-        self.config = config
-        self.device = get_device()
-
-        # Load model
-        print(f"Loading model from {config.model_path}...")
-        self.model, self.processor = load_qwen_vl_for_inference(
-            model_name=config.model_path,
-            adapter_path=config.adapter_path,
-            use_4bit=config.use_4bit,
-        )
-        print(f"Model loaded on {self.device}")
+    config: Any  # EvalConfig or MLXEvalConfig — must have output_dir
 
     def generate(self, image, question: str) -> str:
         """Generate response for image-question pair.
@@ -67,47 +52,7 @@ class SpatialEvaluator:
         Returns:
             Generated response
         """
-        # Format input
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "image", "image": image},
-                    {"type": "text", "text": question},
-                ],
-            }
-        ]
-
-        # Process input
-        text = self.processor.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-
-        inputs = self.processor(
-            text=[text],
-            images=[image],
-            padding=True,
-            return_tensors="pt",
-        )
-
-        # Move to device
-        inputs = {k: v.to(self.device) if hasattr(v, "to") else v for k, v in inputs.items()}
-
-        # Generate
-        with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=self.config.max_new_tokens,
-                temperature=self.config.temperature,
-                do_sample=self.config.temperature > 0,
-                pad_token_id=self.processor.tokenizer.pad_token_id,
-            )
-
-        # Decode
-        generated_ids = outputs[0][inputs["input_ids"].shape[1]:]
-        response = self.processor.decode(generated_ids, skip_special_tokens=True)
-
-        return response.strip()
+        raise NotImplementedError
 
     def evaluate_vsr(self, max_samples: Optional[int] = None) -> EvalResult:
         """Evaluate on Visual Spatial Reasoning benchmark.
@@ -355,6 +300,85 @@ class SpatialEvaluator:
             json.dump(json_results, f, indent=2)
 
         print(f"Results saved to {output_path}")
+
+
+class SpatialEvaluator(_BaseSpatialEvaluator):
+    """PyTorch-based evaluator for spatial reasoning benchmarks."""
+
+    def __init__(self, config: EvalConfig):
+        """Initialize evaluator.
+
+        Args:
+            config: Evaluation configuration
+        """
+        import torch
+        from ..models.qwen_vl import load_qwen_vl_for_inference, get_device
+
+        self.config = config
+        self.device = get_device()
+
+        # Load model
+        print(f"Loading model from {config.model_path}...")
+        self.model, self.processor = load_qwen_vl_for_inference(
+            model_name=config.model_path,
+            adapter_path=config.adapter_path,
+            use_4bit=config.use_4bit,
+        )
+        print(f"Model loaded on {self.device}")
+
+    def generate(self, image, question: str) -> str:
+        """Generate response for image-question pair.
+
+        Args:
+            image: PIL Image
+            question: Question text
+
+        Returns:
+            Generated response
+        """
+        import torch
+
+        # Format input
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "image", "image": image},
+                    {"type": "text", "text": question},
+                ],
+            }
+        ]
+
+        # Process input
+        text = self.processor.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+
+        inputs = self.processor(
+            text=[text],
+            images=[image],
+            padding=True,
+            return_tensors="pt",
+        )
+
+        # Move to device
+        inputs = {k: v.to(self.device) if hasattr(v, "to") else v for k, v in inputs.items()}
+
+        # Generate
+        with torch.no_grad():
+            outputs = self.model.generate(
+                **inputs,
+                max_new_tokens=self.config.max_new_tokens,
+                temperature=self.config.temperature,
+                do_sample=self.config.temperature > 0,
+                pad_token_id=self.processor.tokenizer.pad_token_id,
+            )
+
+        # Decode
+        generated_ids = outputs[0][inputs["input_ids"].shape[1]:]
+        response = self.processor.decode(generated_ids, skip_special_tokens=True)
+
+        return response.strip()
 
 
 def evaluate_model(
