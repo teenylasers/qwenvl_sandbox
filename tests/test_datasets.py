@@ -4,7 +4,7 @@ import io
 import json
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import datasets as ds_lib
 import pytest
@@ -16,19 +16,18 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.data.datasets import (
     _download_image,
-    load_rlhfv_sft,
-    load_spatial_vlm,
-    load_llava_instruct,
-    load_pixmo_points,
-    load_sharegpt4v,
-    load_pixmo_docs,
-    load_rlhfv_preference,
-    load_sft_dataset,
-    load_preference_dataset,
-    load_vsr_benchmark,
     load_cvbench,
+    load_llava_instruct,
+    load_pixmo_docs,
+    load_pixmo_points,
+    load_preference_dataset,
+    load_rlhfv_preference,
+    load_rlhfv_sft,
+    load_sft_dataset,
+    load_sharegpt4v,
+    load_spatial_vlm,
+    load_vsr_benchmark,
 )
-
 
 # =============================================================================
 # Unit Tests
@@ -97,10 +96,12 @@ class TestRlhfvSft:
         ]
         return make_hf_dataset(
             rows,
-            features=ds_lib.Features({
-                "text": ds_lib.Value("string"),
-                "image": ds_lib.Image(),
-            }),
+            features=ds_lib.Features(
+                {
+                    "text": ds_lib.Value("string"),
+                    "image": ds_lib.Image(),
+                }
+            ),
         )
 
     @patch("src.data.datasets.load_dataset")
@@ -134,12 +135,20 @@ class TestSpatialVlm:
     @patch("src.data.datasets.load_dataset")
     def test_basic_formatting(self, mock_load, make_hf_dataset, dummy_pil_image):
         mock_ds = make_hf_dataset(
-            [{"question": "Where is the cat?", "answer": "On the left", "image": dummy_pil_image}],
-            features=ds_lib.Features({
-                "question": ds_lib.Value("string"),
-                "answer": ds_lib.Value("string"),
-                "image": ds_lib.Image(),
-            }),
+            [
+                {
+                    "question": "Where is the cat?",
+                    "answer": "On the left",
+                    "image": dummy_pil_image,
+                }
+            ],
+            features=ds_lib.Features(
+                {
+                    "question": ds_lib.Value("string"),
+                    "answer": ds_lib.Value("string"),
+                    "image": ds_lib.Image(),
+                }
+            ),
         )
         mock_load.return_value = mock_ds
         result = load_spatial_vlm()
@@ -151,11 +160,13 @@ class TestSpatialVlm:
     def test_fallback_field_names(self, mock_load, make_hf_dataset, dummy_pil_image):
         mock_ds = make_hf_dataset(
             [{"prompt": "Where?", "response": "Left", "image": dummy_pil_image}],
-            features=ds_lib.Features({
-                "prompt": ds_lib.Value("string"),
-                "response": ds_lib.Value("string"),
-                "image": ds_lib.Image(),
-            }),
+            features=ds_lib.Features(
+                {
+                    "prompt": ds_lib.Value("string"),
+                    "response": ds_lib.Value("string"),
+                    "image": ds_lib.Image(),
+                }
+            ),
         )
         mock_load.return_value = mock_ds
         result = load_spatial_vlm()
@@ -169,145 +180,182 @@ class TestSpatialVlm:
 
 
 class TestLlavaInstruct:
-    """Tests for load_llava_instruct."""
+    """Tests for load_llava_instruct.
 
-    @patch("src.data.datasets._download_image")
+    Uses plain functions instead of MagicMock for _download_image patches
+    because Dataset.map() serialises closures with dill, which cannot pickle
+    MagicMock objects.
+    """
+
     @patch("src.data.datasets.load_dataset")
-    def test_conversation_extraction(self, mock_load, mock_download, make_hf_dataset, dummy_pil_image):
-        mock_download.return_value = dummy_pil_image
-        mock_ds = make_hf_dataset([{
-            "conversations": [
-                {"from": "human", "value": "<image>\nDescribe this image."},
-                {"from": "gpt", "value": "A beautiful landscape."},
-            ],
-            "image": "000000001.jpg",
-        }])
+    def test_conversation_extraction(self, mock_load, make_hf_dataset, dummy_pil_image):
+        mock_ds = make_hf_dataset(
+            [
+                {
+                    "conversations": [
+                        {"from": "human", "value": "<image>\nDescribe this image."},
+                        {"from": "gpt", "value": "A beautiful landscape."},
+                    ],
+                    "image": "000000001.jpg",
+                }
+            ]
+        )
         mock_load.return_value = mock_ds
-        result = load_llava_instruct()
+        with patch("src.data.datasets._download_image", lambda url: dummy_pil_image):
+            result = load_llava_instruct()
         assert len(result) == 1
         assert result[0]["question"] == "Describe this image."
         assert result[0]["answer"] == "A beautiful landscape."
 
-    @patch("src.data.datasets._download_image")
     @patch("src.data.datasets.load_dataset")
-    def test_image_tag_stripping(self, mock_load, mock_download, make_hf_dataset, dummy_pil_image):
-        mock_download.return_value = dummy_pil_image
-        mock_ds = make_hf_dataset([{
-            "conversations": [
-                {"from": "human", "value": "<image>What is this?"},
-                {"from": "gpt", "value": "A dog."},
-            ],
-            "image": "000000002.jpg",
-        }])
+    def test_image_tag_stripping(self, mock_load, make_hf_dataset, dummy_pil_image):
+        mock_ds = make_hf_dataset(
+            [
+                {
+                    "conversations": [
+                        {"from": "human", "value": "<image>What is this?"},
+                        {"from": "gpt", "value": "A dog."},
+                    ],
+                    "image": "000000002.jpg",
+                }
+            ]
+        )
         mock_load.return_value = mock_ds
-        result = load_llava_instruct()
+        with patch("src.data.datasets._download_image", lambda url: dummy_pil_image):
+            result = load_llava_instruct()
         assert "<image>" not in result[0]["question"]
         assert result[0]["question"] == "What is this?"
 
-    @patch("src.data.datasets._download_image", return_value=None)
     @patch("src.data.datasets.load_dataset")
-    def test_failed_download_filtered(self, mock_load, mock_download, make_hf_dataset):
-        mock_ds = make_hf_dataset([{
-            "conversations": [
-                {"from": "human", "value": "Describe"},
-                {"from": "gpt", "value": "Answer"},
-            ],
-            "image": "missing.jpg",
-        }])
+    def test_failed_download_filtered(self, mock_load, make_hf_dataset):
+        mock_ds = make_hf_dataset(
+            [
+                {
+                    "conversations": [
+                        {"from": "human", "value": "Describe"},
+                        {"from": "gpt", "value": "Answer"},
+                    ],
+                    "image": "missing.jpg",
+                }
+            ]
+        )
         mock_load.return_value = mock_ds
-        result = load_llava_instruct()
+        with patch("src.data.datasets._download_image", lambda url: None):
+            result = load_llava_instruct()
         assert len(result) == 0
 
 
 class TestPixmoPoints:
     """Tests for load_pixmo_points."""
 
-    @patch("src.data.datasets._download_image")
     @patch("src.data.datasets.load_dataset")
-    def test_counting_format(self, mock_load, mock_download, make_hf_dataset, dummy_pil_image):
-        mock_download.return_value = dummy_pil_image
-        mock_ds = make_hf_dataset([{
-            "label": "cats",
-            "count": 3,
-            "collection_method": "counting",
-            "points": [],
-            "image_url": "http://example.com/img.jpg",
-        }])
+    def test_counting_format(self, mock_load, make_hf_dataset, dummy_pil_image):
+        mock_ds = make_hf_dataset(
+            [
+                {
+                    "label": "cats",
+                    "count": 3,
+                    "collection_method": "counting",
+                    "points": [],
+                    "image_url": "http://example.com/img.jpg",
+                }
+            ]
+        )
         mock_load.return_value = mock_ds
-        result = load_pixmo_points()
+        with patch("src.data.datasets._download_image", lambda url: dummy_pil_image):
+            result = load_pixmo_points()
         assert len(result) == 1
         assert "How many cats" in result[0]["question"]
         assert result[0]["answer"] == "3"
 
-    @patch("src.data.datasets._download_image")
     @patch("src.data.datasets.load_dataset")
-    def test_pointing_format(self, mock_load, mock_download, make_hf_dataset, dummy_pil_image):
-        mock_download.return_value = dummy_pil_image
-        mock_ds = make_hf_dataset([{
-            "label": "dogs",
-            "count": 2,
-            "collection_method": "pointing",
-            "points": [{"x": 0.5, "y": 0.3}, {"x": 0.8, "y": 0.7}],
-            "image_url": "http://example.com/img.jpg",
-        }])
+    def test_pointing_format(self, mock_load, make_hf_dataset, dummy_pil_image):
+        mock_ds = make_hf_dataset(
+            [
+                {
+                    "label": "dogs",
+                    "count": 2,
+                    "collection_method": "pointing",
+                    "points": [{"x": 0.5, "y": 0.3}, {"x": 0.8, "y": 0.7}],
+                    "image_url": "http://example.com/img.jpg",
+                }
+            ]
+        )
         mock_load.return_value = mock_ds
-        result = load_pixmo_points()
+        with patch("src.data.datasets._download_image", lambda url: dummy_pil_image):
+            result = load_pixmo_points()
         assert len(result) == 1
         assert "Point to all dogs" in result[0]["question"]
         assert "(0.5, 0.3)" in result[0]["answer"]
         assert "(0.8, 0.7)" in result[0]["answer"]
 
-    @patch("src.data.datasets._download_image", return_value=None)
     @patch("src.data.datasets.load_dataset")
-    def test_failed_download_filtered(self, mock_load, mock_download, make_hf_dataset):
-        mock_ds = make_hf_dataset([{
-            "label": "cats",
-            "count": 1,
-            "collection_method": "counting",
-            "points": [],
-            "image_url": "http://example.com/missing.jpg",
-        }])
+    def test_failed_download_filtered(self, mock_load, make_hf_dataset):
+        mock_ds = make_hf_dataset(
+            [
+                {
+                    "label": "cats",
+                    "count": 1,
+                    "collection_method": "counting",
+                    "points": [],
+                    "image_url": "http://example.com/missing.jpg",
+                }
+            ]
+        )
         mock_load.return_value = mock_ds
-        result = load_pixmo_points()
+        with patch("src.data.datasets._download_image", lambda url: None):
+            result = load_pixmo_points()
         assert len(result) == 0
 
 
 class TestSharegpt4v:
     """Tests for load_sharegpt4v."""
 
-    @patch("src.data.datasets._download_image")
     @patch("src.data.datasets.load_dataset")
-    def test_coco_url_construction(self, mock_load, mock_download, make_hf_dataset, dummy_pil_image):
-        mock_download.return_value = dummy_pil_image
-        mock_ds = make_hf_dataset([{
-            "conversations": [
-                {"from": "human", "value": "<image>\nDescribe"},
-                {"from": "gpt", "value": "A park scene"},
-            ],
-            "image": "coco/train2017/000000000009.jpg",
-        }])
-        mock_load.return_value = mock_ds
-        result = load_sharegpt4v()
-        assert len(result) == 1
-        # Verify _download_image was called with the correct COCO URL
-        mock_download.assert_called_once_with(
-            "http://images.cocodataset.org/train2017/000000000009.jpg"
-        )
+    def test_coco_url_construction(self, mock_load, make_hf_dataset, dummy_pil_image):
+        download_calls = []
 
-    @patch("src.data.datasets._download_image")
-    @patch("src.data.datasets.load_dataset")
-    def test_non_coco_path_filtered(self, mock_load, mock_download, make_hf_dataset):
-        mock_ds = make_hf_dataset([{
-            "conversations": [
-                {"from": "human", "value": "Describe"},
-                {"from": "gpt", "value": "Answer"},
-            ],
-            "image": "some/other/path.jpg",
-        }])
+        def fake_download(url):
+            download_calls.append(url)
+            return dummy_pil_image
+
+        mock_ds = make_hf_dataset(
+            [
+                {
+                    "conversations": [
+                        {"from": "human", "value": "<image>\nDescribe"},
+                        {"from": "gpt", "value": "A park scene"},
+                    ],
+                    "image": "coco/train2017/000000000009.jpg",
+                }
+            ]
+        )
         mock_load.return_value = mock_ds
-        result = load_sharegpt4v()
+        with patch("src.data.datasets._download_image", fake_download):
+            result = load_sharegpt4v()
+        assert len(result) == 1
+        assert download_calls == ["http://images.cocodataset.org/train2017/000000000009.jpg"]
+
+    @patch("src.data.datasets.load_dataset")
+    def test_non_coco_path_filtered(self, mock_load, make_hf_dataset, dummy_pil_image):
+        download_calls = []
+
+        mock_ds = make_hf_dataset(
+            [
+                {
+                    "conversations": [
+                        {"from": "human", "value": "Describe"},
+                        {"from": "gpt", "value": "Answer"},
+                    ],
+                    "image": "some/other/path.jpg",
+                }
+            ]
+        )
+        mock_load.return_value = mock_ds
+        with patch("src.data.datasets._download_image", lambda url: (download_calls.append(url), dummy_pil_image)[1]):
+            result = load_sharegpt4v()
         assert len(result) == 0
-        mock_download.assert_not_called()
+        assert download_calls == []
 
 
 class TestPixmoDocs:
@@ -325,14 +373,23 @@ class TestPixmoDocs:
 
     @patch("src.data.datasets.load_dataset")
     def test_multi_qa_flattening(self, mock_load, dummy_pil_image):
-        charts = self._make_subset([{
-            "image": dummy_pil_image,
-            "questions": [
-                {"question": "Q1", "answer": "A1"},
-                {"question": "Q2", "answer": "A2"},
-            ],
-        }])
-        mock_load.side_effect = [charts, Exception("skip"), Exception("skip"), Exception("skip")]
+        charts = self._make_subset(
+            [
+                {
+                    "image": dummy_pil_image,
+                    "questions": [
+                        {"question": "Q1", "answer": "A1"},
+                        {"question": "Q2", "answer": "A2"},
+                    ],
+                }
+            ]
+        )
+        mock_load.side_effect = [
+            charts,
+            Exception("skip"),
+            Exception("skip"),
+            Exception("skip"),
+        ]
         result = load_pixmo_docs()
         assert len(result) == 2
         assert result["question"] == ["Q1", "Q2"]
@@ -340,22 +397,40 @@ class TestPixmoDocs:
 
     @patch("src.data.datasets.load_dataset")
     def test_skips_missing_images(self, mock_load):
-        charts = self._make_subset([{
-            "image": None,
-            "questions": [{"question": "Q", "answer": "A"}],
-        }])
-        mock_load.side_effect = [charts, Exception("skip"), Exception("skip"), Exception("skip")]
+        charts = self._make_subset(
+            [
+                {
+                    "image": None,
+                    "questions": [{"question": "Q", "answer": "A"}],
+                }
+            ]
+        )
+        mock_load.side_effect = [
+            charts,
+            Exception("skip"),
+            Exception("skip"),
+            Exception("skip"),
+        ]
         result = load_pixmo_docs()
         assert len(result) == 0
 
     @patch("src.data.datasets.load_dataset")
     def test_subset_failure_continues(self, mock_load, dummy_pil_image):
-        tables = self._make_subset([{
-            "image": dummy_pil_image,
-            "questions": [{"question": "Q1", "answer": "A1"}],
-        }])
+        tables = self._make_subset(
+            [
+                {
+                    "image": dummy_pil_image,
+                    "questions": [{"question": "Q1", "answer": "A1"}],
+                }
+            ]
+        )
         # "charts" fails, "tables" succeeds, rest fail
-        mock_load.side_effect = [Exception("fail"), tables, Exception("skip"), Exception("skip")]
+        mock_load.side_effect = [
+            Exception("fail"),
+            tables,
+            Exception("skip"),
+            Exception("skip"),
+        ]
         result = load_pixmo_docs()
         assert len(result) == 1
 
@@ -366,21 +441,25 @@ class TestRlhfvPreference:
     def _mock_ds(self, make_hf_dataset, dummy_pil_image, n=1):
         rows = [
             {
-                "text": json.dumps({
-                    "question": f"Q{i}",
-                    "chosen": f"Good{i}",
-                    "rejected": f"Bad{i}",
-                }),
+                "text": json.dumps(
+                    {
+                        "question": f"Q{i}",
+                        "chosen": f"Good{i}",
+                        "rejected": f"Bad{i}",
+                    }
+                ),
                 "image": dummy_pil_image,
             }
             for i in range(n)
         ]
         return make_hf_dataset(
             rows,
-            features=ds_lib.Features({
-                "text": ds_lib.Value("string"),
-                "image": ds_lib.Image(),
-            }),
+            features=ds_lib.Features(
+                {
+                    "text": ds_lib.Value("string"),
+                    "image": ds_lib.Image(),
+                }
+            ),
         )
 
     @patch("src.data.datasets.load_dataset")
@@ -404,12 +483,14 @@ class TestLoadSftDataset:
 
     @staticmethod
     def _simple_ds(n):
-        return Dataset.from_dict({
-            "images": [[]] * n,
-            "question": [f"Q{i}" for i in range(n)],
-            "answer": [f"A{i}" for i in range(n)],
-            "messages": [[]] * n,
-        })
+        return Dataset.from_dict(
+            {
+                "images": [[]] * n,
+                "question": [f"Q{i}" for i in range(n)],
+                "answer": [f"A{i}" for i in range(n)],
+                "messages": [[]] * n,
+            }
+        )
 
     @patch("src.data.datasets.load_spatial_vlm")
     @patch("src.data.datasets.load_rlhfv_sft")
@@ -443,12 +524,14 @@ class TestLoadPreferenceDataset:
 
     @patch("src.data.datasets.load_rlhfv_preference")
     def test_delegates_to_rlhfv(self, mock_pref):
-        mock_pref.return_value = Dataset.from_dict({
-            "image": [None],
-            "prompt": ["Q"],
-            "chosen": ["Good"],
-            "rejected": ["Bad"],
-        })
+        mock_pref.return_value = Dataset.from_dict(
+            {
+                "image": [None],
+                "prompt": ["Q"],
+                "chosen": ["Good"],
+                "rejected": ["Bad"],
+            }
+        )
         result = load_preference_dataset(max_samples=1)
         assert len(result) == 1
         mock_pref.assert_called_once_with(max_samples=1)
