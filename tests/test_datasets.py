@@ -180,12 +180,7 @@ class TestSpatialVlm:
 
 
 class TestLlavaInstruct:
-    """Tests for load_llava_instruct.
-
-    Uses plain functions instead of MagicMock for _download_image patches
-    because Dataset.map() serialises closures with dill, which cannot pickle
-    MagicMock objects.
-    """
+    """Tests for load_llava_instruct."""
 
     @patch("src.data.datasets.load_dataset")
     def test_conversation_extraction(self, mock_load, make_hf_dataset, dummy_pil_image):
@@ -334,7 +329,9 @@ class TestSharegpt4v:
         with patch("src.data.datasets._download_image", fake_download):
             result = load_sharegpt4v()
         assert len(result) == 1
-        assert download_calls == ["http://images.cocodataset.org/train2017/000000000009.jpg"]
+        assert download_calls == [
+            "http://images.cocodataset.org/train2017/000000000009.jpg"
+        ]
 
     @patch("src.data.datasets.load_dataset")
     def test_non_coco_path_filtered(self, mock_load, make_hf_dataset, dummy_pil_image):
@@ -352,7 +349,10 @@ class TestSharegpt4v:
             ]
         )
         mock_load.return_value = mock_ds
-        with patch("src.data.datasets._download_image", lambda url: (download_calls.append(url), dummy_pil_image)[1]):
+        with patch(
+            "src.data.datasets._download_image",
+            lambda url: (download_calls.append(url), dummy_pil_image)[1],
+        ):
             result = load_sharegpt4v()
         assert len(result) == 0
         assert download_calls == []
@@ -560,7 +560,7 @@ class TestEvalDatasets:
 # =============================================================================
 
 
-@pytest.mark.slow
+@pytest.mark.data_download
 class TestIntegrationSft:
     """Integration tests that download real data from HuggingFace."""
 
@@ -581,12 +581,50 @@ class TestIntegrationSft:
         assert "rejected" in result.column_names
         assert len(result[0]["chosen"]) > 0
 
+    def test_spatial_vlm_real(self):
+        result = load_spatial_vlm(max_samples=2)
+        assert len(result) > 0, "No data sample downloaded."
+        assert "question" in result.column_names
+        assert "answer" in result.column_names
 
-@pytest.mark.slow
+    def test_llava_instruct_real(self):
+        result = load_llava_instruct(max_samples=2)
+        assert len(result) > 0, "No data sample downloaded."
+        assert "images" in result.column_names
+        assert "question" in result.column_names
+        assert len(result[0]["question"]) > 0
+
+    def test_pixmo_points_real(self):
+        result = load_pixmo_points(max_samples=2)
+        assert len(result) > 0, "No data sample downloaded."
+        assert "images" in result.column_names
+        assert "question" in result.column_names
+        assert "answer" in result.column_names
+
+    def test_sharegpt4v_real(self):
+        result = load_sharegpt4v(max_samples=2)
+        assert len(result) > 0, "No data sample downloaded."
+        assert "images" in result.column_names
+        assert "question" in result.column_names
+
+    def test_pixmo_docs_real(self):
+        result = load_pixmo_docs(max_samples=2)
+        assert len(result) > 0, "No data sample downloaded."
+        assert "images" in result.column_names
+        assert "question" in result.column_names
+        assert "answer" in result.column_names
+
+
+@pytest.mark.data_download
 class TestIntegrationEval:
     """Integration tests for evaluation datasets."""
 
     def test_vsr_benchmark_real(self):
         result = load_vsr_benchmark(max_samples=2)
-        if len(result) > 0:
-            assert "caption" in result.column_names or "image" in result.column_names
+        assert len(result) > 0, "No data sample downloaded."
+        assert "caption" in result.column_names or "image" in result.column_names
+
+    def test_cvbench_real(self):
+        result = load_cvbench(max_samples=2)
+        assert len(result) > 0, "No data sample downloaded."
+        assert "question" in result.column_names or "image" in result.column_names

@@ -1,6 +1,7 @@
 """Qwen3-VL model loading utilities."""
 
 from typing import Optional
+
 import torch
 from transformers import (
     AutoProcessor,
@@ -201,6 +202,7 @@ def load_qwen_vl_for_inference(
     # Load adapter if provided
     if adapter_path:
         from peft import PeftModel
+
         model = PeftModel.from_pretrained(model, adapter_path)
         model = model.merge_and_unload()
 

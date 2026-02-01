@@ -1,11 +1,12 @@
 """Dataset loading and preprocessing for VLM training."""
 
-from typing import Optional, Callable
-from datasets import load_dataset, Dataset, concatenate_datasets
-from PIL import Image
 import io
 import json
+from typing import Optional
+
 import requests
+from datasets import Dataset, concatenate_datasets, load_dataset
+from PIL import Image
 
 
 def _download_image(url: str, timeout: int = 10) -> Optional[Image.Image]:
@@ -99,12 +100,14 @@ def load_pixmo_cap(
     # PixMo-Cap only has image URLs, not actual images
     # Skip for now as downloading images is slow
     print("Warning: PixMo-Cap contains URLs, not images. Skipping.")
-    return Dataset.from_dict({
-        "image": [],
-        "question": [],
-        "answer": [],
-        "messages": [],
-    })
+    return Dataset.from_dict(
+        {
+            "image": [],
+            "question": [],
+            "answer": [],
+            "messages": [],
+        }
+    )
 
 
 def load_spatial_vlm(
@@ -126,12 +129,14 @@ def load_spatial_vlm(
         ds = load_dataset("remyxai/vqasynth_spacial", split="train")
     except Exception:
         print("Warning: SpatialVLM dataset not available. Using placeholder.")
-        return Dataset.from_dict({
-            "image": [],
-            "question": [],
-            "answer": [],
-            "messages": [],
-        })
+        return Dataset.from_dict(
+            {
+                "image": [],
+                "question": [],
+                "answer": [],
+                "messages": [],
+            }
+        )
 
     if max_samples:
         ds = ds.select(range(min(max_samples, len(ds))))
@@ -370,10 +375,12 @@ def load_pixmo_docs(
                     all_rows["images"].append([image.convert("RGB")])
                     all_rows["question"].append(q)
                     all_rows["answer"].append(a)
-                    all_rows["messages"].append([
-                        {"role": "user", "content": q},
-                        {"role": "assistant", "content": a},
-                    ])
+                    all_rows["messages"].append(
+                        [
+                            {"role": "user", "content": q},
+                            {"role": "assistant", "content": a},
+                        ]
+                    )
 
                     if max_samples and len(all_rows["question"]) >= max_samples:
                         break
@@ -531,11 +538,13 @@ def load_vsr_benchmark(
         ds = load_dataset("cambridgeltl/vsr_random", split=split)
     except Exception:
         print("Warning: VSR benchmark not available.")
-        return Dataset.from_dict({
-            "image": [],
-            "caption": [],
-            "label": [],
-        })
+        return Dataset.from_dict(
+            {
+                "image": [],
+                "caption": [],
+                "label": [],
+            }
+        )
 
     if max_samples:
         ds = ds.select(range(min(max_samples, len(ds))))
@@ -558,11 +567,13 @@ def load_cvbench(
         ds = load_dataset("nyu-visionx/CV-Bench", split="test")
     except Exception:
         print("Warning: CV-Bench not available.")
-        return Dataset.from_dict({
-            "image": [],
-            "question": [],
-            "answer": [],
-        })
+        return Dataset.from_dict(
+            {
+                "image": [],
+                "question": [],
+                "answer": [],
+            }
+        )
 
     if max_samples:
         ds = ds.select(range(min(max_samples, len(ds))))

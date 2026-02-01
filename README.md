@@ -138,6 +138,25 @@ qwenvl_sandbox/
 | [VSR](https://huggingface.co/datasets/cambridgeltl/vsr_random) | 10k | Visual spatial relations |
 | [CV-Bench](https://huggingface.co/datasets/nyu-visionx/CV-Bench) | 2,638 | Comprehensive VLM evaluation |
 
+## Testing                                                                                                                            
+                                                                                                                                      
+```bash                                                                                                                               
+# Run all unit tests (fast, no network)                                                                                               
+pytest tests/ -v -m "not data_download"
+
+# Run dataset loading tests only
+pytest tests/test_datasets.py -v -m "not data_download"
+
+# Run pipeline tests (reward functions, configs, model loading)
+pytest tests/test_pipeline.py -v
+
+# Run a specific test
+pytest tests/test_datasets.py::TestLlavaInstruct::test_conversation_extraction -v
+
+# Run integration tests (downloads real data from HuggingFace)
+pytest tests/ -v -m data_download                                                                                                              
+```  
+
 ## Configuration
 
 ### Model Settings

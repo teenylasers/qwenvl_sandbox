@@ -1,7 +1,8 @@
 """Data collators for VLM training with Qwen3-VL."""
 
-from typing import Any
 from dataclasses import dataclass
+from typing import Any
+
 import torch
 from PIL import Image
 

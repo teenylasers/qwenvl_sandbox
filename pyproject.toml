@@ -53,7 +53,7 @@ target-version = "py310"
 
 [tool.pytest.ini_options]
 markers = [
-    "slow: marks tests that download real data from HuggingFace (deselect with '-m \"not slow\"')",
+    "data_download: marks tests that download real data from HuggingFace (deselect with '-m \"not data_download\"')",
 ]
 
 [tool.ruff.lint]
