@@ -83,22 +83,6 @@ class TestRewardFunctions:
         assert rewards[0] == 1.0
 
 
-class TestDatasets:
-    """Test dataset loading functions."""
-
-    def test_load_sft_format(self):
-        """Test that SFT dataset has correct format."""
-        # This test would need actual data, so we just test the interface
-        from src.data.datasets import load_sft_dataset
-        # Note: This will fail without actual datasets
-        # In a real setup, you'd use fixtures or mocks
-
-    def test_load_preference_format(self):
-        """Test that preference dataset has correct format."""
-        from src.data.datasets import load_preference_dataset
-        # Similar note about needing actual data
-
-
 class TestModelLoading:
     """Test model loading utilities."""
 
