@@ -30,6 +30,11 @@ data:
     # - sharegpt4v      # ShareGPT4V 102K GPT4V captions (downloads COCO images)
     # - pixmo_docs      # PixMo-Docs 255K chart/table/diagram QA (embedded images)
   max_samples_per_dataset: null  # Set to small number for testing
+  image:
+    # Limit image resolution to control vision token count per image.
+    # Each 28x28 patch = 1 vision token. Defaults: min=256*28*28, max=1280*28*28.
+    min_pixels: 200704   # 256 * 28 * 28
+    max_pixels: 1003520  # 1280 * 28 * 28
   shuffle: true
   seed: 42
 
@@ -42,7 +47,7 @@ training:
   learning_rate: 2.0e-5
   warmup_ratio: 0.1
   weight_decay: 0.01
-  max_seq_length: 2048
+  max_seq_length: 4096
   gradient_checkpointing: true
 
 # Hardware settings

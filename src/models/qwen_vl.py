@@ -89,6 +89,8 @@ def load_qwen_vl(
     lora_config: Optional[LoraConfig] = None,
     device_map: Optional[str] = "auto",
     attn_implementation: Optional[str] = None,
+    min_pixels: Optional[int] = None,
+    max_pixels: Optional[int] = None,
 ) -> tuple[AutoModelForVision2Seq, AutoProcessor]:
     """Load Qwen3-VL model and processor.
 
@@ -105,11 +107,13 @@ def load_qwen_vl(
     """
     device = get_device()
 
-    # Processor
-    processor = AutoProcessor.from_pretrained(
-        model_name,
-        trust_remote_code=True,
-    )
+    # Processor — limit image resolution to control vision token count
+    processor_kwargs = {"trust_remote_code": True}
+    if min_pixels is not None:
+        processor_kwargs["min_pixels"] = min_pixels
+    if max_pixels is not None:
+        processor_kwargs["max_pixels"] = max_pixels
+    processor = AutoProcessor.from_pretrained(model_name, **processor_kwargs)
 
     # Model loading kwargs
     model_kwargs = {

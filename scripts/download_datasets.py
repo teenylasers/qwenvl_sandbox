@@ -2,8 +2,8 @@
 """Script to download and prepare datasets for VLM training."""
 
 import argparse
-from pathlib import Path
 import sys
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -13,6 +13,7 @@ def download_rlhfv():
     print("Downloading RLHF-V dataset...")
     try:
         from datasets import load_dataset
+
         ds = load_dataset("openbmb/RLHF-V-Dataset")
         print(f"  RLHF-V: {len(ds['train'])} samples")
         return True
@@ -59,12 +60,15 @@ def download_spatial_vlm():
     print("Downloading SpatialVLM dataset...")
     try:
         from datasets import load_dataset
+
         ds = load_dataset("remyxai/vqasynth_spacial", split="train")
         print(f"  SpatialVLM: {len(ds)} samples")
         return True
     except Exception as e:
         print(f"  Failed to download SpatialVLM: {e}")
-        print("  Note: This dataset may require authentication or may not be publicly available.")
+        print(
+            "  Note: This dataset may require authentication or may not be publicly available."
+        )
         return False
 
 
@@ -73,6 +77,7 @@ def download_vsr():
     print("Downloading VSR benchmark...")
     try:
         from datasets import load_dataset
+
         ds = load_dataset("cambridgeltl/vsr_random", split="test")
         print(f"  VSR: {len(ds)} samples")
         return True
@@ -86,6 +91,7 @@ def download_cvbench():
     print("Downloading CV-Bench...")
     try:
         from datasets import load_dataset
+
         ds = load_dataset("nyu-visionx/CV-Bench", split="test")
         print(f"  CV-Bench: {len(ds)} samples")
         return True
@@ -99,6 +105,7 @@ def download_llava_instruct():
     print("Downloading LLaVA-Instruct-150K...")
     try:
         from datasets import load_dataset
+
         ds = load_dataset("liuhaotian/LLaVA-Instruct-150K", split="train")
         print(f"  LLaVA-Instruct-150K: {len(ds)} samples")
         print("  Note: COCO images will be downloaded at training time.")
@@ -113,6 +120,7 @@ def download_pixmo_points():
     print("Downloading PixMo-Points...")
     try:
         from datasets import load_dataset
+
         ds = load_dataset("allenai/pixmo-points", split="train")
         print(f"  PixMo-Points: {len(ds)} samples")
         print("  Note: Images will be downloaded from URLs at training time.")
@@ -127,6 +135,7 @@ def download_sharegpt4v():
     print("Downloading ShareGPT4V...")
     try:
         from datasets import load_dataset
+
         ds = load_dataset("Lin-Chen/ShareGPT4V", "ShareGPT4V", split="train")
         print(f"  ShareGPT4V: {len(ds)} samples")
         print("  Note: COCO images will be downloaded at training time.")
@@ -141,6 +150,7 @@ def download_pixmo_docs():
     print("Downloading PixMo-Docs...")
     try:
         from datasets import load_dataset
+
         total = 0
         for subset in ["charts", "tables", "diagrams", "other"]:
             try:
@@ -163,8 +173,16 @@ def main():
         nargs="+",
         default=["all"],
         choices=[
-            "all", "rlhfv", "pixmo", "spatial", "vsr", "cvbench",
-            "llava_instruct", "pixmo_points", "sharegpt4v", "pixmo_docs",
+            "all",
+            "rlhfv",
+            "pixmo",
+            "spatial",
+            "vsr",
+            "cvbench",
+            "llava_instruct",
+            "pixmo_points",
+            "sharegpt4v",
+            "pixmo_docs",
         ],
         help="Datasets to download",
     )
@@ -178,6 +196,7 @@ def main():
 
     if args.cache_dir:
         import os
+
         os.environ["HF_DATASETS_CACHE"] = args.cache_dir
 
     print("=" * 60)
@@ -187,8 +206,15 @@ def main():
     datasets_to_download = args.datasets
     if "all" in datasets_to_download:
         datasets_to_download = [
-            "rlhfv", "pixmo", "spatial", "vsr", "cvbench",
-            "llava_instruct", "pixmo_points", "sharegpt4v", "pixmo_docs",
+            "rlhfv",
+            "pixmo",
+            "spatial",
+            "vsr",
+            "cvbench",
+            "llava_instruct",
+            "pixmo_points",
+            "sharegpt4v",
+            "pixmo_docs",
         ]
 
     results = {}

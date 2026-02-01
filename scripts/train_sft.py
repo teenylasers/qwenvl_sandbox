@@ -35,10 +35,14 @@ def create_config_from_yaml(yaml_config: dict, args) -> SFTTrainingConfig:
 
     lora_cfg = model_cfg.get("lora", {})
 
+    image_cfg = data_cfg.get("image", {})
+
     return SFTTrainingConfig(
         model_name=model_cfg.get("name", "Qwen/Qwen3-VL-4B-Instruct"),
         use_lora=model_cfg.get("use_lora", True),
         use_4bit=model_cfg.get("use_4bit", True),
+        min_pixels=image_cfg.get("min_pixels"),
+        max_pixels=image_cfg.get("max_pixels"),
         lora_r=lora_cfg.get("r", 64),
         lora_alpha=lora_cfg.get("alpha", 16),
         lora_dropout=lora_cfg.get("dropout", 0.05),

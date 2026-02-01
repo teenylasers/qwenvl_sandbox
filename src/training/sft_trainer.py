@@ -23,6 +23,10 @@ class SFTTrainingConfig:
     lora_alpha: int = 16
     lora_dropout: float = 0.05
 
+    # Image resolution (controls vision token count per image)
+    min_pixels: Optional[int] = 256 * 28 * 28      # ~256 tokens min
+    max_pixels: Optional[int] = 1280 * 28 * 28     # ~1280 tokens max
+
     # Training
     output_dir: str = "./outputs/sft"
     num_train_epochs: int = 3
@@ -31,7 +35,7 @@ class SFTTrainingConfig:
     learning_rate: float = 2e-5
     warmup_ratio: float = 0.1
     weight_decay: float = 0.01
-    max_seq_length: int = 2048
+    max_seq_length: int = 4096
     logging_steps: int = 10
     save_steps: int = 500
     save_total_limit: int = 3
@@ -84,6 +88,8 @@ def create_sft_trainer(
         use_lora=config.use_lora,
         use_4bit=config.use_4bit,
         lora_config=lora_config,
+        min_pixels=config.min_pixels,
+        max_pixels=config.max_pixels,
     )
 
     # Load dataset
