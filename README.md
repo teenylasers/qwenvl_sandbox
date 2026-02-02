@@ -81,7 +81,7 @@ python scripts/train_grpo.py --reward_type spatial --debug --mlx
 python scripts/evaluate.py --model_path ./outputs/dpo --benchmarks VSR CV-Bench
 
 # Evaluate base model (PyTorch)
-python scripts/evaluate.py --model_path Qwen/Qwen3-VL-4B-Instruct --max_samples 100
+python scripts/evaluate.py --model_path Qwen/Qwen3-VL-2B-Instruct --max_samples 100
 
 # Evaluate with MLX (fast, Apple Silicon)
 python scripts/evaluate.py --mlx --benchmarks VSR CV-Bench
@@ -95,9 +95,11 @@ python scripts/evaluate.py --mlx --mlx-model 8b-4bit --max_samples 100
 ```
 qwenvl_sandbox/
 ├── configs/
-│   ├── sft_config.yaml      # SFT training config
-│   ├── dpo_config.yaml      # DPO training config
-│   └── grpo_config.yaml     # GRPO training config
+│   ├── sft_config.yaml      # SFT training config (2B default)
+│   ├── dpo_config.yaml      # DPO training config (2B default)
+│   ├── grpo_config.yaml     # GRPO training config (2B default)
+│   ├── *_4b.yaml            # 4B model variants
+│   └── colab_*.yaml         # Colab-optimized configs
 ├── src/
 │   ├── data/
 │   │   ├── datasets.py      # Dataset loading (RLHF-V, PixMo, SpatialVLM)
@@ -168,13 +170,15 @@ pytest tests/ -v -m data_download
 
 ### Model Settings
 
+The default model is Qwen3-VL-2B-Instruct. For 4B, use the `*_4b.yaml` config files.
+
 ```yaml
 model:
-  name: "Qwen/Qwen3-VL-4B-Instruct"
+  name: "Qwen/Qwen3-VL-2B-Instruct"  # or "Qwen/Qwen3-VL-4B-Instruct"
   use_lora: true
   use_4bit: true  # QLoRA (CUDA only)
   lora:
-    r: 64
+    r: 32           # 32 for 2B, 64 for 4B
     alpha: 16
     dropout: 0.05
 ```
@@ -185,7 +189,7 @@ model:
 training:
   num_epochs: 3
   batch_size: 1
-  gradient_accumulation_steps: 8
+  gradient_accumulation_steps: 4  # 4 for 2B, 8 for 4B
   learning_rate: 2.0e-5
   gradient_checkpointing: true
 ```
@@ -226,7 +230,7 @@ python scripts/test_mlx.py --all
 ```python
 from src.models import MLXInference
 
-model = MLXInference("4b-4bit")
+model = MLXInference("2b-4bit")
 response = model.generate(
     "Describe the spatial relationships in this image.",
     image="path/to/image.jpg"
@@ -264,7 +268,7 @@ python scripts/train_sft.py --debug --mlx --mlx_model 8b-4bit --max_samples 3
 Run the full VSR and CV-Bench evaluation benchmarks locally on Apple Silicon using MLX:
 
 ```bash
-# Evaluate with default model (4b-4bit, ~4GB RAM)
+# Evaluate with default model (2b-4bit, ~2GB RAM)
 python scripts/evaluate.py --mlx --benchmarks VSR CV-Bench
 
 # Quick check with limited samples
@@ -344,7 +348,7 @@ Custom reward functions for spatial reasoning:
 ## Training Pipeline
 
 ```
-Base Model (Qwen3-VL-4B)
+Base Model (Qwen3-VL-2B)
          │
          ▼
     ┌─────────┐

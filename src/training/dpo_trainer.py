@@ -15,11 +15,11 @@ class DPOTrainingConfig:
     """Configuration for DPO training."""
 
     # Model
-    model_name: str = "Qwen/Qwen3-VL-4B-Instruct"
+    model_name: str = "Qwen/Qwen3-VL-2B-Instruct"
     sft_checkpoint: Optional[str] = None  # Path to SFT checkpoint
     use_lora: bool = True
     use_4bit: bool = True
-    lora_r: int = 64
+    lora_r: int = 32
     lora_alpha: int = 16
     lora_dropout: float = 0.05
 

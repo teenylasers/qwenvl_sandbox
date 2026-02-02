@@ -15,7 +15,7 @@ def main():
     parser.add_argument(
         "--model_path",
         type=str,
-        default="Qwen/Qwen3-VL-4B-Instruct",
+        default="Qwen/Qwen3-VL-2B-Instruct",
         help="Path to model or HuggingFace model ID",
     )
     parser.add_argument(
@@ -55,8 +55,8 @@ def main():
     parser.add_argument(
         "--mlx-model",
         type=str,
-        default="4b-4bit",
-        help="MLX model shorthand or HuggingFace path (default: 4b-4bit)",
+        default="2b-4bit",
+        help="MLX model shorthand or HuggingFace path (default: 2b-4bit)",
     )
     args = parser.parse_args()
 

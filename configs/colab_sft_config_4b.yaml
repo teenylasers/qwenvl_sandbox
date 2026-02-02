@@ -1,15 +1,14 @@
-# Colab-Optimized SFT Training Configuration for Qwen3-VL-2B (default)
-# For 4B model, use: python scripts/train_sft.py --config configs/colab_sft_config_4b.yaml
+# Colab-Optimized SFT Training Configuration for Qwen3-VL-4B
 # Optimized for T4 GPU (16GB VRAM) with session recovery
-# Usage: python scripts/train_sft.py --config configs/colab_sft_config.yaml
+# Usage: python scripts/train_sft.py --config configs/colab_sft_config_4b.yaml
 
 # Model settings
 model:
-  name: "Qwen/Qwen3-VL-2B-Instruct"
+  name: "Qwen/Qwen3-VL-4B-Instruct"
   use_lora: true
   use_4bit: true
   lora:
-    r: 16  # Reduced for 2B model on T4
+    r: 32  # Reduced from 64 for T4 VRAM
     alpha: 16
     dropout: 0.05
     target_modules:
@@ -34,11 +33,11 @@ training:
   output_dir: "/content/drive/MyDrive/qwen3_vl_training/checkpoints/sft"
   num_epochs: 1
   batch_size: 1
-  gradient_accumulation_steps: 8
+  gradient_accumulation_steps: 16  # Higher to compensate for batch_size=1
   learning_rate: 2.0e-5
   warmup_ratio: 0.1
   weight_decay: 0.01
-  max_seq_length: 2048  # 2B model fits comfortably on T4
+  max_seq_length: 1024  # Reduced from 2048 for T4 with 4B model
   gradient_checkpointing: true
 
 # Hardware settings
@@ -52,7 +51,7 @@ logging:
   save_steps: 200  # Frequent saves for session recovery
   save_total_limit: 2  # Keep fewer checkpoints to save space
   report_to: "wandb"
-  run_name: "qwen-vl-sft-colab"
+  run_name: "qwen-vl-sft-colab-4b"
 
 # Debug settings
 debug:

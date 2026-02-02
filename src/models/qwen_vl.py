@@ -83,7 +83,7 @@ def get_peft_config(
 
 
 def load_qwen_vl(
-    model_name: str = "Qwen/Qwen3-VL-4B-Instruct",
+    model_name: str = "Qwen/Qwen3-VL-2B-Instruct",
     use_lora: bool = True,
     use_4bit: bool = True,
     lora_config: Optional[LoraConfig] = None,
@@ -161,7 +161,7 @@ def load_qwen_vl(
 
 
 def load_qwen_vl_for_inference(
-    model_name: str = "Qwen/Qwen3-VL-4B-Instruct",
+    model_name: str = "Qwen/Qwen3-VL-2B-Instruct",
     adapter_path: Optional[str] = None,
     use_4bit: bool = False,
 ) -> tuple[AutoModelForVision2Seq, AutoProcessor]:

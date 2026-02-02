@@ -20,11 +20,11 @@ This guide explains how to train the Qwen3-VL spatial reasoning model on Google 
 
 ## GPU Tiers and Capabilities
 
-| Tier | GPU | VRAM | Max Seq Length | LoRA Rank | Recommended Use |
-|------|-----|------|----------------|-----------|-----------------|
-| Free | T4 | 16GB | 1024 | 32 | SFT with 1k samples |
-| Pro | V100 | 16GB | 1536 | 64 | SFT/DPO full training |
-| Pro+ | A100 | 40GB | 2048 | 64 | All stages, larger batches |
+| Tier | GPU | VRAM | Max Seq Length (2B) | LoRA Rank (2B) | Recommended Use |
+|------|-----|------|---------------------|----------------|-----------------|
+| Free | T4 | 16GB | 2048 | 16 | SFT with 1k samples |
+| Pro | V100 | 16GB | 1536 | 32 | SFT/DPO full training |
+| Pro+ | A100 | 40GB | 2048 | 32 | All stages, larger batches |
 
 ## Storage and Persistence
 
@@ -41,7 +41,7 @@ All data is stored on Google Drive to persist across sessions:
 ```
 
 First-time downloads:
-- Model: ~8GB (Qwen3-VL-4B)
+- Model: ~4GB (Qwen3-VL-2B, or ~8GB for 4B)
 - RLHF-V dataset: ~2GB
 
 Subsequent runs use the cached files.
@@ -69,26 +69,30 @@ RESUME_FROM_CHECKPOINT = "/content/drive/MyDrive/qwen3_vl_training/checkpoints/s
 
 ## Configuration Options
 
-### For T4 (Free Tier)
+### For T4 (Free Tier) with 2B model (default)
 ```yaml
 model:
+  name: "Qwen/Qwen3-VL-2B-Instruct"
   lora:
-    r: 32  # Reduced from 64
+    r: 16
 training:
-  max_seq_length: 1024  # Reduced from 2048
-  gradient_accumulation_steps: 16
+  max_seq_length: 2048
+  gradient_accumulation_steps: 8
 grpo:
-  num_generations: 2  # Reduced from 4
+  num_generations: 4
 ```
+
+### For T4 (Free Tier) with 4B model
+Use the `*_4b.yaml` configs, e.g., `configs/colab_sft_config_4b.yaml`.
 
 ### For A100 (Pro+)
 ```yaml
 model:
   lora:
-    r: 64
+    r: 32
 training:
   max_seq_length: 2048
-  gradient_accumulation_steps: 4
+  gradient_accumulation_steps: 2
 grpo:
   num_generations: 4
 ```

@@ -5,7 +5,7 @@ This script tests the MLX inference pipeline for Qwen3-VL, which provides
 fast local inference (~200-400 tok/s) compared to PyTorch MPS (~7-9 tok/s).
 
 Usage:
-    # Quick test with default model (4b-4bit)
+    # Quick test with default model (2b-4bit)
     python scripts/test_mlx.py
 
     # Test with specific model
@@ -117,9 +117,9 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default="4b-4bit",
+        default="2b-4bit",
         choices=list(MLX_MODELS.keys()),
-        help="Model to use (default: 4b-4bit)",
+        help="Model to use (default: 2b-4bit)",
     )
     parser.add_argument(
         "--image",

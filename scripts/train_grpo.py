@@ -35,11 +35,11 @@ def create_config_from_yaml(yaml_config: dict, args) -> GRPOTrainingConfig:
     lora_cfg = model_cfg.get("lora", {})
 
     return GRPOTrainingConfig(
-        model_name=model_cfg.get("name", "Qwen/Qwen3-VL-4B-Instruct"),
+        model_name=model_cfg.get("name", "Qwen/Qwen3-VL-2B-Instruct"),
         sft_checkpoint=args.sft_checkpoint or model_cfg.get("sft_checkpoint"),
         use_lora=model_cfg.get("use_lora", True),
         use_4bit=model_cfg.get("use_4bit", True),
-        lora_r=lora_cfg.get("r", 64),
+        lora_r=lora_cfg.get("r", 32),
         lora_alpha=lora_cfg.get("alpha", 16),
         lora_dropout=lora_cfg.get("dropout", 0.05),
         num_generations=grpo_cfg.get("num_generations", 4),
@@ -110,7 +110,7 @@ def main():
     parser.add_argument(
         "--mlx_model",
         type=str,
-        default="4b-4bit",
+        default="2b-4bit",
         help="MLX model to use (2b-4bit, 4b-4bit, 8b-4bit, etc.)",
     )
     parser.add_argument(

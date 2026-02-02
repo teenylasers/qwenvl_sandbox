@@ -37,7 +37,7 @@ def is_mlx_available() -> bool:
 class MLXModelConfig:
     """Configuration for MLX model loading."""
 
-    model_path: str = "mlx-community/Qwen3-VL-4B-Instruct-4bit"
+    model_path: str = "mlx-community/Qwen3-VL-2B-Instruct-4bit"
     max_tokens: int = 256
     temperature: float = 0.7  # Qwen3-VL recommended: 0.7
     top_p: float = 0.8  # Qwen3-VL recommended: 0.8
@@ -66,7 +66,7 @@ class MLXInference:
 
     def __init__(
         self,
-        model_name: str = "4b-4bit",
+        model_name: str = "2b-4bit",
         config: Optional[MLXModelConfig] = None,
     ):
         """Initialize MLX inference.
@@ -211,7 +211,7 @@ class MLXInference:
         return results
 
 
-def quick_test(model_name: str = "4b-4bit", image_url: Optional[str] = None):
+def quick_test(model_name: str = "2b-4bit", image_url: Optional[str] = None):
     """Quick test of MLX inference.
 
     Args:

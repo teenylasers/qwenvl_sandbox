@@ -38,12 +38,12 @@ def create_config_from_yaml(yaml_config: dict, args) -> SFTTrainingConfig:
     image_cfg = data_cfg.get("image", {})
 
     return SFTTrainingConfig(
-        model_name=model_cfg.get("name", "Qwen/Qwen3-VL-4B-Instruct"),
+        model_name=model_cfg.get("name", "Qwen/Qwen3-VL-2B-Instruct"),
         use_lora=model_cfg.get("use_lora", True),
         use_4bit=model_cfg.get("use_4bit", True),
         min_pixels=image_cfg.get("min_pixels"),
         max_pixels=image_cfg.get("max_pixels"),
-        lora_r=lora_cfg.get("r", 64),
+        lora_r=lora_cfg.get("r", 32),
         lora_alpha=lora_cfg.get("alpha", 16),
         lora_dropout=lora_cfg.get("dropout", 0.05),
         output_dir=args.output_dir or training_cfg.get("output_dir", "./outputs/sft"),
@@ -94,7 +94,7 @@ def main():
     parser.add_argument(
         "--mlx_model",
         type=str,
-        default="4b-4bit",
+        default="2b-4bit",
         help="MLX model to use (2b-4bit, 4b-4bit, 8b-4bit, etc.)",
     )
     parser.add_argument(
