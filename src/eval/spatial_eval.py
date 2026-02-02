@@ -8,7 +8,7 @@ from typing import Any, Optional
 from datasets import Dataset
 from tqdm import tqdm
 
-from ..data.datasets import load_cvbench, load_vsr_benchmark
+from ..data.datasets import _download_image, load_cvbench, load_vsr_benchmark
 
 
 @dataclass
@@ -83,7 +83,10 @@ class _BaseSpatialEvaluator:
         predictions = []
 
         for example in tqdm(dataset, desc="VSR"):
-            image = example["image"]
+            image_url = example.get("image_link", "")
+            image = _download_image(image_url) if image_url else None
+            if image is None:
+                continue
             caption = example["caption"]
             label = example["label"]  # True/False
 
@@ -123,14 +126,15 @@ class _BaseSpatialEvaluator:
                 }
             )
 
-        accuracy = correct / len(dataset) if dataset else 0
+        total = len(predictions)
+        accuracy = correct / total if total else 0
 
-        print(f"VSR Accuracy: {accuracy:.2%} ({correct}/{len(dataset)})")
+        print(f"VSR Accuracy: {accuracy:.2%} ({correct}/{total})")
 
         return EvalResult(
             benchmark="VSR",
             accuracy=accuracy,
-            total_samples=len(dataset),
+            total_samples=total,
             correct=correct,
             predictions=predictions,
         )
