@@ -145,27 +145,6 @@ def download_sharegpt4v():
         return False
 
 
-def download_pixmo_docs():
-    """Download PixMo-Docs dataset."""
-    print("Downloading PixMo-Docs...")
-    try:
-        from datasets import load_dataset
-
-        total = 0
-        for subset in ["charts", "tables", "diagrams", "other"]:
-            try:
-                ds = load_dataset("allenai/pixmo-docs", subset, split="train")
-                print(f"  PixMo-Docs ({subset}): {len(ds)} samples")
-                total += len(ds)
-            except Exception as e:
-                print(f"  PixMo-Docs ({subset}) not available: {e}")
-        print(f"  PixMo-Docs total: {total} samples")
-        return total > 0
-    except Exception as e:
-        print(f"  Failed to download PixMo-Docs: {e}")
-        return False
-
-
 def main():
     parser = argparse.ArgumentParser(description="Download datasets for VLM training")
     parser.add_argument(
@@ -182,7 +161,6 @@ def main():
             "llava_instruct",
             "pixmo_points",
             "sharegpt4v",
-            "pixmo_docs",
         ],
         help="Datasets to download",
     )
@@ -214,7 +192,6 @@ def main():
             "llava_instruct",
             "pixmo_points",
             "sharegpt4v",
-            "pixmo_docs",
         ]
 
     results = {}
@@ -242,9 +219,6 @@ def main():
 
     if "sharegpt4v" in datasets_to_download:
         results["ShareGPT4V"] = download_sharegpt4v()
-
-    if "pixmo_docs" in datasets_to_download:
-        results["PixMo-Docs"] = download_pixmo_docs()
 
     print("\n" + "=" * 60)
     print("Download Summary")

@@ -18,7 +18,6 @@ from src.data.datasets import (
     _download_image,
     load_cvbench,
     load_llava_instruct,
-    load_pixmo_docs,
     load_pixmo_points,
     load_preference_dataset,
     load_rlhfv_preference,
@@ -358,83 +357,6 @@ class TestSharegpt4v:
         assert download_calls == []
 
 
-class TestPixmoDocs:
-    """Tests for load_pixmo_docs.
-
-    Uses a plain iterable mock instead of Dataset because load_pixmo_docs
-    iterates directly (``for example in ds``), and the real HuggingFace
-    dataset returns ``questions`` as a list-of-dicts per row.
-    """
-
-    @staticmethod
-    def _make_subset(rows):
-        """Return a list (iterable) mimicking a HF Dataset for direct iteration."""
-        return rows
-
-    @patch("src.data.datasets.load_dataset")
-    def test_multi_qa_flattening(self, mock_load, dummy_pil_image):
-        charts = self._make_subset(
-            [
-                {
-                    "image": dummy_pil_image,
-                    "questions": [
-                        {"question": "Q1", "answer": "A1"},
-                        {"question": "Q2", "answer": "A2"},
-                    ],
-                }
-            ]
-        )
-        mock_load.side_effect = [
-            charts,
-            Exception("skip"),
-            Exception("skip"),
-            Exception("skip"),
-        ]
-        result = load_pixmo_docs()
-        assert len(result) == 2
-        assert result["question"] == ["Q1", "Q2"]
-        assert result["answer"] == ["A1", "A2"]
-
-    @patch("src.data.datasets.load_dataset")
-    def test_skips_missing_images(self, mock_load):
-        charts = self._make_subset(
-            [
-                {
-                    "image": None,
-                    "questions": [{"question": "Q", "answer": "A"}],
-                }
-            ]
-        )
-        mock_load.side_effect = [
-            charts,
-            Exception("skip"),
-            Exception("skip"),
-            Exception("skip"),
-        ]
-        result = load_pixmo_docs()
-        assert len(result) == 0
-
-    @patch("src.data.datasets.load_dataset")
-    def test_subset_failure_continues(self, mock_load, dummy_pil_image):
-        tables = self._make_subset(
-            [
-                {
-                    "image": dummy_pil_image,
-                    "questions": [{"question": "Q1", "answer": "A1"}],
-                }
-            ]
-        )
-        # "charts" fails, "tables" succeeds, rest fail
-        mock_load.side_effect = [
-            Exception("fail"),
-            tables,
-            Exception("skip"),
-            Exception("skip"),
-        ]
-        result = load_pixmo_docs()
-        assert len(result) == 1
-
-
 class TestRlhfvPreference:
     """Tests for load_rlhfv_preference."""
 
@@ -606,13 +528,6 @@ class TestIntegrationSft:
         assert len(result) > 0, "No data sample downloaded."
         assert "images" in result.column_names
         assert "question" in result.column_names
-
-    def test_pixmo_docs_real(self):
-        result = load_pixmo_docs(max_samples=2)
-        assert len(result) > 0, "No data sample downloaded."
-        assert "images" in result.column_names
-        assert "question" in result.column_names
-        assert "answer" in result.column_names
 
 
 @pytest.mark.data_download

@@ -28,7 +28,6 @@ data:
     # - llava_instruct  # LLaVA-Instruct-150K (downloads COCO images at load time)
     # - pixmo_points    # PixMo-Points 2.38M counting/pointing (downloads images from URLs)
     # - sharegpt4v      # ShareGPT4V 102K GPT4V captions (downloads COCO images)
-    # - pixmo_docs      # PixMo-Docs 255K chart/table/diagram QA (embedded images)
   max_samples_per_dataset: null  # Set to small number for testing
   image:
     # Limit image resolution to control vision token count per image.

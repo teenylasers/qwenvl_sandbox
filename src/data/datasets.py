@@ -336,62 +336,6 @@ def load_sharegpt4v(
     return ds
 
 
-def load_pixmo_docs(
-    max_samples: Optional[int] = None,
-) -> Dataset:
-    """Load PixMo-Docs dataset for SFT.
-
-    Contains ~255K QA pairs about charts, tables, diagrams, and documents.
-    Images are embedded. Multiple questions per image are flattened to one row each.
-
-    Args:
-        max_samples: Maximum number of samples to load
-
-    Returns:
-        Dataset formatted for SFT training
-    """
-    # Load all subsets and combine
-    all_rows = {"images": [], "question": [], "answer": [], "messages": []}
-
-    for subset in ["charts", "tables", "diagrams", "other"]:
-        try:
-            ds = load_dataset("allenai/pixmo-docs", subset, split="train")
-        except Exception:
-            print(f"  Warning: PixMo-Docs subset '{subset}' not available, skipping.")
-            continue
-
-        for example in ds:
-            image = example.get("image")
-            if image is None:
-                continue
-            if not isinstance(image, Image.Image):
-                continue
-
-            questions = example.get("questions", [])
-            for qa in questions:
-                q = qa.get("question", "")
-                a = qa.get("answer", "")
-                if q and a:
-                    all_rows["images"].append([image.convert("RGB")])
-                    all_rows["question"].append(q)
-                    all_rows["answer"].append(a)
-                    all_rows["messages"].append(
-                        [
-                            {"role": "user", "content": q},
-                            {"role": "assistant", "content": a},
-                        ]
-                    )
-
-                    if max_samples and len(all_rows["question"]) >= max_samples:
-                        break
-            if max_samples and len(all_rows["question"]) >= max_samples:
-                break
-        if max_samples and len(all_rows["question"]) >= max_samples:
-            break
-
-    return Dataset.from_dict(all_rows)
-
-
 def load_sft_dataset(
     datasets_to_load: list[str] = ["rlhfv", "pixmo", "spatial"],
     max_samples_per_dataset: Optional[int] = None,
@@ -416,7 +360,6 @@ def load_sft_dataset(
         "llava_instruct": load_llava_instruct,
         "pixmo_points": load_pixmo_points,
         "sharegpt4v": load_sharegpt4v,
-        "pixmo_docs": load_pixmo_docs,
     }
 
     loaded_datasets = []

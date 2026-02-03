@@ -138,7 +138,6 @@ qwenvl_sandbox/
 | [LLaVA-Instruct-150K](https://huggingface.co/datasets/liuhaotian/LLaVA-Instruct-150K) | 150K | Visual instruction following |
 | [PixMo-Points](https://huggingface.co/datasets/allenai/pixmo-points) | 2.38M | Counting and pointing |
 | [ShareGPT4V](https://huggingface.co/datasets/Lin-Chen/ShareGPT4V) | 102K | GPT4V-powered captions |
-| [PixMo-Docs](https://huggingface.co/datasets/allenai/pixmo-docs) | ~255K | Chart/table/diagram QA |
 
 ### Evaluation Benchmarks
 
