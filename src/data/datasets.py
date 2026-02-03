@@ -125,10 +125,16 @@ def load_llava_instruct(
     Returns:
         Dataset formatted for SFT training
     """
-    ds = load_dataset("liuhaotian/LLaVA-Instruct-150K", split="train")
+    # Use streaming to avoid ArrowTypeError from mixed-type 'id' column in the
+    # upstream HuggingFace JSON files (some shards have int ids, others strings).
+    ds_stream = load_dataset(
+        "liuhaotian/LLaVA-Instruct-150K", split="train", streaming=True
+    )
 
     if max_samples:
-        ds = ds.select(range(min(max_samples, len(ds))))
+        ds_stream = ds_stream.take(max_samples)
+
+    ds = Dataset.from_list(list(ds_stream))
 
     def format_for_sft(example):
         # Extract first human/gpt turn from conversations
