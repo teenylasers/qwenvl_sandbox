@@ -95,35 +95,44 @@ python scripts/evaluate.py --mlx --mlx-model 8b-4bit --max_samples 100
 ```
 qwenvl_sandbox/
 ├── configs/
-│   ├── sft_config.yaml      # SFT training config (2B default)
-│   ├── dpo_config.yaml      # DPO training config (2B default)
-│   ├── grpo_config.yaml     # GRPO training config (2B default)
-│   ├── *_4b.yaml            # 4B model variants
-│   └── colab_*.yaml         # Colab-optimized configs
+│   ├── sft_config.yaml          # SFT training config (2B default)
+│   ├── dpo_config.yaml          # DPO training config (2B default)
+│   ├── grpo_config.yaml         # GRPO training config (2B default)
+│   ├── *_4b.yaml                # 4B model variants
+│   └── colab_*.yaml             # Colab-optimized configs
 ├── src/
 │   ├── data/
-│   │   ├── datasets.py      # Dataset loading (RLHF-V, PixMo)
-│   │   └── collators.py     # Data collators for VLM
+│   │   ├── datasets.py          # Dataset loading (RLHF-V, PixMo, LLaVA, etc.)
+│   │   └── collators.py         # Data collators for VLM
 │   ├── models/
-│   │   ├── qwen_vl.py       # Model loading utilities
-│   │   └── mlx_inference.py # MLX inference for Apple Silicon
+│   │   ├── qwen_vl.py           # Model loading utilities
+│   │   └── mlx_inference.py     # MLX inference for Apple Silicon
 │   ├── training/
-│   │   ├── sft_trainer.py   # SFT trainer
-│   │   ├── dpo_trainer.py   # DPO trainer
-│   │   ├── grpo_trainer.py  # GRPO trainer
+│   │   ├── sft_trainer.py       # SFT trainer
+│   │   ├── dpo_trainer.py       # DPO trainer
+│   │   ├── grpo_trainer.py      # GRPO trainer
 │   │   ├── reward_functions.py  # Spatial reasoning rewards
-│   │   └── mlx_debug.py     # MLX-based debug validation
+│   │   ├── validation_utils.py  # Training validation utilities
+│   │   └── mlx_debug.py         # MLX-based debug validation
 │   └── eval/
-│       ├── spatial_eval.py  # Evaluation on benchmarks (PyTorch)
-│       └── mlx_eval.py      # Evaluation on benchmarks (MLX)
+│       ├── spatial_eval.py      # Evaluation on benchmarks (PyTorch)
+│       └── mlx_eval.py          # Evaluation on benchmarks (MLX)
 ├── scripts/
-│   ├── download_datasets.py
-│   ├── train_sft.py
-│   ├── train_dpo.py
-│   ├── train_grpo.py
-│   └── evaluate.py
-└── tests/
-    └── test_pipeline.py
+│   ├── download_datasets.py     # Download training/eval datasets
+│   ├── train_sft.py             # SFT training entry point
+│   ├── train_dpo.py             # DPO training entry point
+│   ├── train_grpo.py            # GRPO training entry point
+│   ├── evaluate.py              # Evaluation entry point
+│   ├── test_mlx.py              # MLX model testing
+│   └── colab_utils.py           # Google Colab utilities
+├── tests/
+│   ├── conftest.py              # Pytest fixtures and configuration
+│   ├── test_pipeline.py         # Pipeline integration tests
+│   └── test_datasets.py         # Dataset loading tests
+├── docs/
+│   └── COLAB_TRAINING.md        # Colab training guide
+└── notebooks/
+    └── qwen3_vl_training.ipynb  # Interactive training notebook
 ```
 
 ## Datasets
