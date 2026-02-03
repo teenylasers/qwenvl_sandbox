@@ -166,13 +166,19 @@ class _BaseSpatialEvaluator:
 
         for example in tqdm(dataset, desc="CV-Bench"):
             image = example["image"]
-            question = example["question"]
+            question = example["prompt"] + "\nAnswer with only the letter of your choice."
             answer = example["answer"]
 
             response = self.generate(image, question)
 
             # Check if answer matches (case-insensitive)
-            is_correct = answer.lower().strip() in response.lower()
+            # Handle formats like "(C)", "(C) 1", "C)", "C" from the model
+            answer_letter = answer.strip().strip("()").lower()
+            response_lower = response.lower().strip()
+            is_correct = (
+                answer.lower().strip() in response_lower
+                or response_lower.startswith(f"{answer_letter})")
+            )
 
             if is_correct:
                 correct += 1
