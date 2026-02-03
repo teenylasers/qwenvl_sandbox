@@ -102,7 +102,7 @@ qwenvl_sandbox/
 │   └── colab_*.yaml         # Colab-optimized configs
 ├── src/
 │   ├── data/
-│   │   ├── datasets.py      # Dataset loading (RLHF-V, PixMo, SpatialVLM)
+│   │   ├── datasets.py      # Dataset loading (RLHF-V, PixMo)
 │   │   └── collators.py     # Data collators for VLM
 │   ├── models/
 │   │   ├── qwen_vl.py       # Model loading utilities
@@ -134,7 +134,6 @@ qwenvl_sandbox/
 |---------|---------|---------|
 | [RLHF-V](https://huggingface.co/datasets/openbmb/RLHF-V-Dataset) | 5,733 | Preference pairs for DPO |
 | [PixMo-Cap](https://huggingface.co/datasets/allenai/pixmo-cap) | ~1M | Dense captions for SFT |
-| [SpatialVLM](https://spatial-vlm.github.io/) | 2B synthetic | Spatial VQA |
 | [LLaVA-Instruct-150K](https://huggingface.co/datasets/liuhaotian/LLaVA-Instruct-150K) | 150K | Visual instruction following |
 | [PixMo-Points](https://huggingface.co/datasets/allenai/pixmo-points) | 2.38M | Counting and pointing |
 | [ShareGPT4V](https://huggingface.co/datasets/Lin-Chen/ShareGPT4V) | 102K | GPT4V-powered captions |
@@ -351,7 +350,7 @@ Base Model (Qwen3-VL-2B)
          │
          ▼
     ┌─────────┐
-    │   SFT   │  ← PixMo-Cap + SpatialVLM + RLHF-V (chosen)
+    │   SFT   │  ← PixMo-Cap + RLHF-V (chosen) + optional: LLaVA-Instruct, PixMo-Points, ShareGPT4V
     └────┬────┘
          │
          ▼

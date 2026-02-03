@@ -55,22 +55,6 @@ def download_pixmo():
         return False
 
 
-def download_spatial_vlm():
-    """Download SpatialVLM dataset."""
-    print("Downloading SpatialVLM dataset...")
-    try:
-        from datasets import load_dataset
-
-        ds = load_dataset("remyxai/vqasynth_spacial", split="train")
-        print(f"  SpatialVLM: {len(ds)} samples")
-        return True
-    except Exception as e:
-        print(f"  Failed to download SpatialVLM: {e}")
-        print(
-            "  Note: This dataset may require authentication or may not be publicly available."
-        )
-        return False
-
 
 def download_vsr():
     """Download VSR benchmark."""
@@ -155,7 +139,6 @@ def main():
             "all",
             "rlhfv",
             "pixmo",
-            "spatial",
             "vsr",
             "cvbench",
             "llava_instruct",
@@ -186,7 +169,6 @@ def main():
         datasets_to_download = [
             "rlhfv",
             "pixmo",
-            "spatial",
             "vsr",
             "cvbench",
             "llava_instruct",
@@ -202,8 +184,6 @@ def main():
     if "pixmo" in datasets_to_download:
         results["PixMo"] = download_pixmo()
 
-    if "spatial" in datasets_to_download:
-        results["SpatialVLM"] = download_spatial_vlm()
 
     if "vsr" in datasets_to_download:
         results["VSR"] = download_vsr()

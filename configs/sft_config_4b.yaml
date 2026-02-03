@@ -24,7 +24,6 @@ data:
   datasets:
     - rlhfv    # RLHF-V chosen responses
     - pixmo    # PixMo-Cap dense captions
-    - spatial  # SpatialVLM
     # - llava_instruct  # LLaVA-Instruct-150K (downloads COCO images at load time)
     # - pixmo_points    # PixMo-Points 2.38M counting/pointing (downloads images from URLs)
     # - sharegpt4v      # ShareGPT4V 102K GPT4V captions (downloads COCO images)

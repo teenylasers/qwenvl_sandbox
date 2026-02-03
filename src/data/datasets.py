@@ -89,7 +89,7 @@ def load_pixmo_cap(
 
     Note: PixMo-Cap contains image URLs, not direct images.
     This requires downloading images which is slow - skip for now.
-    Use RLHF-V and SpatialVLM which have direct image data.
+    Use RLHF-V which has direct image data.
 
     Args:
         max_samples: Maximum number of samples
@@ -109,52 +109,6 @@ def load_pixmo_cap(
         }
     )
 
-
-def load_spatial_vlm(
-    max_samples: Optional[int] = None,
-) -> Dataset:
-    """Load SpatialVLM dataset for spatial reasoning SFT.
-
-    SpatialVLM provides synthetic spatial VQA data. Check availability at:
-    https://huggingface.co/datasets/remyxai/vqasynth_spacial
-
-    Args:
-        max_samples: Maximum number of samples
-
-    Returns:
-        Dataset formatted for SFT
-    """
-    try:
-        # Try loading from available sources
-        ds = load_dataset("remyxai/vqasynth_spacial", split="train")
-    except Exception:
-        print("Warning: SpatialVLM dataset not available. Using placeholder.")
-        return Dataset.from_dict(
-            {
-                "image": [],
-                "question": [],
-                "answer": [],
-                "messages": [],
-            }
-        )
-
-    if max_samples:
-        ds = ds.select(range(min(max_samples, len(ds))))
-
-    def format_for_sft(example):
-        question = example.get("question", example.get("prompt", ""))
-        answer = example.get("answer", example.get("response", ""))
-        return {
-            "image": example["image"],
-            "question": question,
-            "answer": answer,
-            "messages": [
-                {"role": "user", "content": question},
-                {"role": "assistant", "content": answer},
-            ],
-        }
-
-    return ds.map(format_for_sft, remove_columns=ds.column_names)
 
 
 def load_llava_instruct(
@@ -337,7 +291,7 @@ def load_sharegpt4v(
 
 
 def load_sft_dataset(
-    datasets_to_load: list[str] = ["rlhfv", "pixmo", "spatial"],
+    datasets_to_load: list[str] = ["rlhfv", "pixmo"],
     max_samples_per_dataset: Optional[int] = None,
     shuffle: bool = True,
     seed: int = 42,
@@ -356,7 +310,6 @@ def load_sft_dataset(
     loaders = {
         "rlhfv": load_rlhfv_sft,
         "pixmo": load_pixmo_cap,
-        "spatial": load_spatial_vlm,
         "llava_instruct": load_llava_instruct,
         "pixmo_points": load_pixmo_points,
         "sharegpt4v": load_sharegpt4v,

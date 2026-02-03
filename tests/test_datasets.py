@@ -24,7 +24,6 @@ from src.data.datasets import (
     load_rlhfv_sft,
     load_sft_dataset,
     load_sharegpt4v,
-    load_spatial_vlm,
     load_vsr_benchmark,
 )
 
@@ -127,55 +126,6 @@ class TestRlhfvSft:
         result = load_rlhfv_sft(max_samples=2)
         assert len(result) == 2
 
-
-class TestSpatialVlm:
-    """Tests for load_spatial_vlm."""
-
-    @patch("src.data.datasets.load_dataset")
-    def test_basic_formatting(self, mock_load, make_hf_dataset, dummy_pil_image):
-        mock_ds = make_hf_dataset(
-            [
-                {
-                    "question": "Where is the cat?",
-                    "answer": "On the left",
-                    "image": dummy_pil_image,
-                }
-            ],
-            features=ds_lib.Features(
-                {
-                    "question": ds_lib.Value("string"),
-                    "answer": ds_lib.Value("string"),
-                    "image": ds_lib.Image(),
-                }
-            ),
-        )
-        mock_load.return_value = mock_ds
-        result = load_spatial_vlm()
-        assert len(result) == 1
-        assert result[0]["question"] == "Where is the cat?"
-        assert result[0]["answer"] == "On the left"
-
-    @patch("src.data.datasets.load_dataset")
-    def test_fallback_field_names(self, mock_load, make_hf_dataset, dummy_pil_image):
-        mock_ds = make_hf_dataset(
-            [{"prompt": "Where?", "response": "Left", "image": dummy_pil_image}],
-            features=ds_lib.Features(
-                {
-                    "prompt": ds_lib.Value("string"),
-                    "response": ds_lib.Value("string"),
-                    "image": ds_lib.Image(),
-                }
-            ),
-        )
-        mock_load.return_value = mock_ds
-        result = load_spatial_vlm()
-        assert result[0]["question"] == "Where?"
-        assert result[0]["answer"] == "Left"
-
-    @patch("src.data.datasets.load_dataset", side_effect=Exception("not available"))
-    def test_graceful_failure(self, mock_load):
-        result = load_spatial_vlm()
-        assert len(result) == 0
 
 
 class TestLlavaInstruct:
@@ -414,12 +364,12 @@ class TestLoadSftDataset:
             }
         )
 
-    @patch("src.data.datasets.load_spatial_vlm")
+    @patch("src.data.datasets.load_pixmo_cap")
     @patch("src.data.datasets.load_rlhfv_sft")
-    def test_combines_multiple(self, mock_rlhfv, mock_spatial):
+    def test_combines_multiple(self, mock_rlhfv, mock_pixmo):
         mock_rlhfv.return_value = self._simple_ds(3)
-        mock_spatial.return_value = self._simple_ds(2)
-        result = load_sft_dataset(["rlhfv", "spatial"], shuffle=False)
+        mock_pixmo.return_value = self._simple_ds(2)
+        result = load_sft_dataset(["rlhfv", "pixmo"], shuffle=False)
         assert len(result) == 5
 
     @patch("src.data.datasets.load_rlhfv_sft")
@@ -503,11 +453,6 @@ class TestIntegrationSft:
         assert "rejected" in result.column_names
         assert len(result[0]["chosen"]) > 0
 
-    def test_spatial_vlm_real(self):
-        result = load_spatial_vlm(max_samples=2)
-        assert len(result) > 0, "No data sample downloaded."
-        assert "question" in result.column_names
-        assert "answer" in result.column_names
 
     def test_llava_instruct_real(self):
         result = load_llava_instruct(max_samples=2)
